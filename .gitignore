@@ -14,3 +14,10 @@ dist/
 
 # Local scratch (never commit; /var/folders scratch stays outside the repo)
 .scratch/
+
+# QA screenshots & browser captures (never commit; keep locally if needed)
+qa-screenshots/
+.openchamber/
+*.png
+*.jpg
+*.jpeg
