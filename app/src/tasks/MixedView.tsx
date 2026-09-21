@@ -4,11 +4,15 @@
  * Children are dispatched one by one by `ChildTaskView`, which also serves as the shared
  * dispatcher for ChartRenderer. Nothing assumes a particular combination: pie, table, map
  * and process children all route to their own renderer, and anything unrecognised degrades
- * to FallbackTable. The item-level `keyFeatures` list is shown once, combined, as the
- * overview checklist for the whole task.
+ * to FallbackTable.
+ *
+ * Step 1: the figures, the statement, the time frame and the units are task data and stay
+ * visible; the item-level `keyFeatures` list and `groupingStrategy` are interpretation, so
+ * they ship inside collapsed disclosures (counted summaries only). Child renderers never
+ * inject their own key features, so there is nothing to collapse per sub-chart.
  */
 
-import type { ReactNode } from 'react';
+import { useMemo, type ReactNode } from 'react';
 import { BarChart } from './BarChart';
 import { ChartAttribution } from './ChartAttribution';
 import { FallbackTable } from './FallbackTable';
@@ -19,7 +23,7 @@ import { PieChart } from './PieChart';
 import { ProcessView } from './ProcessView';
 import { TableView } from './TableView';
 import type { Task1Item } from './types';
-import { Badge, Collapsible, EmptyNote } from './ui';
+import { Badge, Collapsible, EmptyNote, UnitsNote } from './ui';
 
 export interface ChildTaskViewProps extends ChartViewProps {
   /** Nesting guard for mixed-inside-mixed data. */
@@ -69,7 +73,20 @@ export interface MixedViewProps extends ChartViewProps {
 }
 
 export function MixedView({ item, title, className, depth = 0, showStatement = false, aside }: MixedViewProps) {
-  const children = (item.subCharts ?? []).filter((child): child is Task1Item => Boolean(child));
+  /* Sub-figures inherit the parent's bank policy when they carry none, so every
+     attribution tooltip names a policy. Memoised on purpose: the exam timer
+     re-renders this tree every tick, and a fresh object per render would rebuild
+     each chart underneath. */
+  const children = useMemo(
+    () =>
+      (item.subCharts ?? [])
+        .filter((child): child is Task1Item => Boolean(child))
+        .map((child) => ({
+          ...child,
+          chartImagePolicy: child.chartImagePolicy ?? item.chartImagePolicy,
+        })),
+    [item.subCharts, item.chartImagePolicy],
+  );
   const childTypes = distinct(children.map((child) => humanizeToken(child.type ?? 'unknown')));
   const keyFeatures = (item.keyFeatures ?? []).filter((feature) => feature && feature.description);
 
@@ -77,7 +94,7 @@ export function MixedView({ item, title, className, depth = 0, showStatement = f
     return (
       <section className={cx('paper rounded-control border border-dashed border-line p-3.5', className)}>
         <p className="text-sm text-slate-500">Mixed task {item.specId} has no sub-charts in the bank data.</p>
-        <ChartAttribution />
+        <ChartAttribution policy={item.chartImagePolicy ?? undefined} />
       </section>
     );
   }
@@ -96,6 +113,10 @@ export function MixedView({ item, title, className, depth = 0, showStatement = f
       {showStatement && item.statement ? (
         <p className="mb-3 rounded-control bg-surface px-3.5 py-2 text-subhead text-ink">{item.statement}</p>
       ) : null}
+
+      {/* The combined units note is task data (like the statement), so it stays visible
+          above the figures; each sub-chart still repeats its own note inside its frame. */}
+      <UnitsNote note={item.unitsNote} />
 
       {/* Each sub-figure gets its own scroll container so a wide table or process
           diagram never widens the page; min-w-0 keeps it from forcing the panel. */}
@@ -118,16 +139,26 @@ export function MixedView({ item, title, className, depth = 0, showStatement = f
       </div>
 
       {keyFeatures.length > 0 ? (
-        <div className="mt-4 rounded-control bg-tint-soft p-3.5">
-          <h4 className="mb-1 text-caption font-semibold uppercase tracking-wide text-tint-strong">
-            Combined key features ({keyFeatures.length})
-          </h4>
-          <ol className="list-decimal space-y-1 pl-5 text-subhead text-ink">
-            {keyFeatures.map((feature, index) => (
-              <li key={feature.id ?? index}>{feature.description}</li>
-            ))}
-          </ol>
-          <p className="mt-1 text-caption text-tint-strong">Your overview must cover both charts, not one of them.</p>
+        <div className="mt-4">
+          {/* Interpretation, not task data: the overview checklist stays behind a
+              closed disclosure so the learner reads both figures before seeing it. */}
+          <Collapsible
+            testId="mixed-key-features"
+            summary={
+              <>
+                Key features ({keyFeatures.length}) —{' '}
+                <span className="group-open:hidden">tap to expand</span>
+                <span className="hidden group-open:inline">tap to collapse</span>
+              </>
+            }
+          >
+            <ol className="list-decimal space-y-1 pl-5 text-subhead text-ink">
+              {keyFeatures.map((feature, index) => (
+                <li key={feature.id ?? index}>{feature.description}</li>
+              ))}
+            </ol>
+            <p className="mt-2 text-caption text-ink-2">Your overview must cover both charts, not one of them.</p>
+          </Collapsible>
         </div>
       ) : (
         <EmptyNote>No combined key features recorded for this mixed task.</EmptyNote>
@@ -135,7 +166,16 @@ export function MixedView({ item, title, className, depth = 0, showStatement = f
 
       {item.groupingStrategy ? (
         <div className="mt-3">
-          <Collapsible summary="Suggested organisation">
+          <Collapsible
+            testId="mixed-organisation"
+            summary="Suggested organisation"
+            aside={
+              <span className="text-caption font-normal text-ink-2">
+                <span className="group-open:hidden">tap to expand</span>
+                <span className="hidden group-open:inline">tap to collapse</span>
+              </span>
+            }
+          >
             <p className="text-subhead text-ink-2">{item.groupingStrategy}</p>
           </Collapsible>
         </div>

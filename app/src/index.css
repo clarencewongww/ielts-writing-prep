@@ -181,6 +181,11 @@
     @apply min-h-full bg-surface font-sans text-body text-ink antialiased;
     /* Long ids, quotes and URLs wrap rather than widening the page. */
     overflow-wrap: break-word;
+    /* viewport-fit=cover (index.html): on a notched phone held in landscape the
+       shell stays out of the notch. env() resolves to 0 in a normal tab, and to
+       0 on every edge of a non-notched device, so this is inert almost always. */
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
   }
 
   /* One selection color app-wide: the accent, like the system. The answer
@@ -264,5 +269,56 @@
     --danger-soft: 255 241 242;
     background-color: rgb(var(--paper));
     color: rgb(var(--ink));
+  }
+}
+
+/* ============================================================================
+ * 8. INSTALLED-APP SHELL (PWA)
+ *
+ *    index.html asks for viewport-fit=cover and a black-translucent iOS status
+ *    bar, so the app paints edge to edge and must keep its own content out of
+ *    the status bar and the home indicator. `env(safe-area-inset-*)` is 0 in a
+ *    normal tab, on every edge of a non-notched device, and in landscape on a
+ *    device without a notch — the rules below are therefore inert everywhere
+ *    except the standalone window they are written for.
+ *
+ *    Selectors are ID-prefixed on purpose: the shell elements carry Tailwind
+ *    spacing utilities (the exam <main> has pb-10), and utilities outrank a
+ *    class-level rule, so the inset has to outrank the utility to survive.
+ * ========================================================================== */
+@layer components {
+  /* Top of the shell: setup/report are top-level <main>s, while the exam's is a
+     sticky glass header — the padding keeps the header's blur behind the status
+     bar while its controls move down. */
+  #root > main,
+  #root header.glass {
+    padding-top: env(safe-area-inset-top);
+  }
+
+  /* Bottom of the shell, above the home indicator. The inset goes on the shell
+     wrapper, never on a screen that already owns its bottom padding: an
+     ID-prefixed rule would outrank the exam workspace's own `pb-10` and, with
+     env() = 0 in a browser tab, would silently delete 40px of spacing. */
+  #root > main,
+  #root > div {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+/* Two behaviours that only make sense while browser chrome exists. */
+@media (display-mode: standalone) {
+  /* No pull-to-refresh / rubber-band above the shell: the exam timer owns the
+     top of the screen and must not be dragged. */
+  html {
+    overscroll-behavior-y: none;
+  }
+
+  /* The app's own chrome (glass header, tab strips) is not text: a long press
+     should not start a selection or pop the iOS callout over the timer. */
+  header,
+  nav {
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
   }
 }

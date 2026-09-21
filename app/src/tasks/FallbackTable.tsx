@@ -11,7 +11,7 @@ import { Fragment } from 'react';
 import { ChartAttribution } from './ChartAttribution';
 import { axisOrder, cx, formatCell, groupSlicesByYear, humanizeToken, scalarRows } from './format';
 import type { Task1Item } from './types';
-import { EmptyNote, SectionHeading } from './ui';
+import { Collapsible, EmptyNote, SectionHeading } from './ui';
 
 export interface FallbackTableProps {
   item: Task1Item;
@@ -72,6 +72,7 @@ export function FallbackTable({ item, reason, className, depth = 0 }: FallbackTa
   const cells = item.cells ?? [];
   const stages = (item.stages ?? []).slice().sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
   const changes = item.changes ?? [];
+  const keyFeatures = (item.keyFeatures ?? []).filter((feature) => feature && feature.description);
   const scalars = scalarRows(item);
 
   const hasSeries = series.length > 0;
@@ -206,16 +207,26 @@ export function FallbackTable({ item, reason, className, depth = 0 }: FallbackTa
         </div>
       ) : null}
 
-      {depth === 0 && Array.isArray(item.keyFeatures) && item.keyFeatures.length > 0 ? (
+      {depth === 0 && keyFeatures.length > 0 ? (
         <div className="mb-1">
-          <SectionHeading>Key features</SectionHeading>
-          <ul className="list-disc space-y-0.5 pl-5 text-xs text-slate-700">
-            {item.keyFeatures
-              .filter((feature) => feature && feature.description)
-              .map((feature, index) => (
+          {/* Interpretation, not task data: same policy as MixedView — the overview
+              checklist stays behind a closed disclosure until the learner asks. */}
+          <Collapsible
+            testId="fallback-key-features"
+            summary={
+              <>
+                Key features ({keyFeatures.length}) —{' '}
+                <span className="group-open:hidden">tap to expand</span>
+                <span className="hidden group-open:inline">tap to collapse</span>
+              </>
+            }
+          >
+            <ul className="list-disc space-y-0.5 pl-5 text-xs text-slate-700">
+              {keyFeatures.map((feature, index) => (
                 <li key={feature.id ?? index}>{feature.description}</li>
               ))}
-          </ul>
+            </ul>
+          </Collapsible>
         </div>
       ) : null}
 
@@ -231,7 +242,7 @@ export function FallbackTable({ item, reason, className, depth = 0 }: FallbackTa
         </EmptyNote>
       ) : null}
 
-      <ChartAttribution />
+      <ChartAttribution policy={item.chartImagePolicy ?? undefined} />
     </section>
   );
 }

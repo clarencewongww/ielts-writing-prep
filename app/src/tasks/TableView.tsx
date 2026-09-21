@@ -59,7 +59,7 @@ export function TableView({ item, title, caption, className }: TableViewProps) {
     return (
       <section className={cx('paper rounded-control border border-dashed border-line p-3', className)}>
         <p className="text-sm text-slate-500">Table {item.specId} has no rows or columns in the bank data.</p>
-        <ChartAttribution />
+        <ChartAttribution policy={item.chartImagePolicy ?? undefined} />
       </section>
     );
   }
@@ -186,7 +186,7 @@ export function TableView({ item, title, caption, className }: TableViewProps) {
         </p>
       ) : null}
 
-      <ChartAttribution />
+      <ChartAttribution policy={item.chartImagePolicy ?? undefined} />
     </figure>
   );
 }

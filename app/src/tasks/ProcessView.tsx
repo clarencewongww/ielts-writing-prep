@@ -77,7 +77,7 @@ export function ProcessView({ item, title, className }: ProcessViewProps) {
     return (
       <section className={cx('paper rounded-control border border-dashed border-line p-3.5', className)}>
         <p className="text-sm text-slate-500">Process {item.specId} has no stages in the bank data.</p>
-        <ChartAttribution />
+        <ChartAttribution policy={item.chartImagePolicy ?? undefined} />
       </section>
     );
   }
@@ -277,7 +277,7 @@ export function ProcessView({ item, title, className }: ProcessViewProps) {
         </Collapsible>
       </div>
 
-      <ChartAttribution />
+      <ChartAttribution policy={item.chartImagePolicy ?? undefined} />
     </figure>
   );
 }

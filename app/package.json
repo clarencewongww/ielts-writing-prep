@@ -6,9 +6,10 @@
   "description": "IELTS Academic Writing practice app: 60-minute CBT/paper simulation with bank-driven tasks.",
   "scripts": {
     "sync:bank": "node scripts/sync-bank.mjs",
+    "icons": "node scripts/generate-icons.mjs",
     "predev": "npm run sync:bank",
     "dev": "vite",
-    "prebuild": "npm run sync:bank",
+    "prebuild": "npm run sync:bank && npm run icons",
     "build": "npm run typecheck && vite build",
     "typecheck": "tsc --noEmit",
     "preview": "vite preview --port 4173 --strictPort"
@@ -28,6 +29,7 @@
     "postcss": "^8.4.49",
     "tailwindcss": "^3.4.17",
     "typescript": "^5.6.3",
-    "vite": "^5.4.11"
+    "vite": "^5.4.11",
+    "vite-plugin-pwa": "^1.3.0"
   }
 }

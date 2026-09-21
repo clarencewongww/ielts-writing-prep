@@ -209,7 +209,7 @@ export function MapView({ item, className, heightClass = 'h-auto min-h-[180px]' 
     return (
       <section className={cx('paper rounded-control border border-dashed border-line p-3.5', className)}>
         <p className="text-sm text-slate-500">Map {item.specId} has no areas or changes in the bank data.</p>
-        <ChartAttribution />
+        <ChartAttribution policy={item.chartImagePolicy ?? undefined} />
       </section>
     );
   }
@@ -312,7 +312,7 @@ export function MapView({ item, className, heightClass = 'h-auto min-h-[180px]' 
         </div>
       ) : null}
 
-      <ChartAttribution />
+      <ChartAttribution policy={item.chartImagePolicy ?? undefined} />
     </figure>
   );
 }

@@ -21,6 +21,7 @@ import {
   TASK2_FAMILY_LABELS,
 } from "../constants";
 import { resolveSamples } from "../data/samples";
+import { useInstallPrompt } from "../pwa";
 import { loadSetupPrefs, patchSetupPrefs } from "../store/persistence";
 import type { Task1Type, Task2Family } from "../types/bank";
 import type { TaskOrder } from "../types/session";
@@ -45,6 +46,10 @@ const SECTION_CONTROL_SELECTOR: Record<"task1" | "task2", string> = {
 
 export function SessionSetup() {
   const { bank, actions } = useSession();
+  /* Chrome/Edge deferred install event. Hidden when unavailable or already
+     running standalone; `pwa.ts` keeps the browser mini-infobar suppressed, so
+     this button is the discoverable install path. */
+  const { canInstall, isStandalone, promptInstall } = useInstallPrompt();
   const [initialPrefs] = useState(() => loadSetupPrefs());
 
   const [task1Type, setTask1Type] = useState<Task1Type>(() => {
@@ -203,14 +208,28 @@ export function SessionSetup() {
             >
               Start 60-minute session
             </button>
-            <button
-              type="button"
-              data-testid="random-prompts"
-              onClick={handleRandom}
-              className="mt-2.5 min-h-[44px] w-full rounded-full border border-line px-5 text-subhead font-medium text-ink transition-colors ease-apple hover:bg-surface focus-visible:outline-tint"
-            >
-              Random prompts
-            </button>
+            {/* Random + Install share one wrapping row: at 320 px each falls onto
+                its own line (grow), from 390 px they sit side by side. */}
+            <div className="mt-2.5 flex flex-wrap gap-2.5">
+              <button
+                type="button"
+                data-testid="random-prompts"
+                onClick={handleRandom}
+                className="min-h-[44px] min-w-0 grow basis-40 rounded-full border border-line px-5 text-subhead font-medium text-ink transition-colors ease-apple hover:bg-surface focus-visible:outline-tint"
+              >
+                Random prompts
+              </button>
+              {canInstall && !isStandalone && (
+                <button
+                  type="button"
+                  data-testid="install-app"
+                  onClick={() => void promptInstall()}
+                  className="min-h-[44px] min-w-0 grow basis-32 rounded-full border border-line px-5 text-subhead font-medium text-ink transition-colors ease-apple hover:bg-surface focus-visible:outline-tint"
+                >
+                  Install app
+                </button>
+              )}
+            </div>
             <p className="mt-3 text-caption leading-5 text-ink-2">
               It saves as you go in this browser — reload and you&rsquo;ll land right back here, mid-session.
             </p>
