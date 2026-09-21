@@ -2,28 +2,261 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ============================================================================
+ * IELTS Writing — Apple HIG token system (Step 4, improvement mode)
+ * ============================================================================
+ *
+ * 1. GROUNDING (SKILL.md › Design improvement mode step 1)
+ *    Product: IELTS Academic Writing CBT simulation. Audience: an IELTS learner
+ *    sitting a 60-minute exam job at a desk (regular) or on a phone (compact).
+ *    Screen jobs: setup = commit to the session in one tap; exam = write without
+ *    distraction; report = understand the band and the single next fix.
+ *    Visual world drawn from the subject: exam-hall software, a stopwatch, a
+ *    band-score sheet. Calm, precise, numbers first. Not a poster.
+ *
+ * 2. WHY THIS SYSTEM (critique of the previous plan, step 3)
+ *    Rejected defaults (studio anti-defaults): warm stone canvas + amber accent
+ *    (warm-cream/terracotta family), near-black slate-900 pills as CTAs (generic
+ *    "dark button" look), and a big-number hero with a gradient accent. None of
+ *    them come from the subject; all of them would fit any quiz app.
+ *    Kept and sharpened: semantic system surfaces, one accent that means
+ *    "interactive / selected", amber+rose reserved for warnings and score caps,
+ *    and the one bold element this product owns — the exam timer pill, plus the
+ *    band-score moment it pays off into.
+ *    Translations from Apple vocabulary (SKILL.md › Vocabulary translation):
+ *    system colors -> CSS custom properties; SF Pro -> system UI font stack;
+ *    Dynamic Type -> browser zoom / text-size-adjust; sheet -> dialog;
+ *    Liquid Glass -> backdrop-filter on the functional layer only.
+ *
+ * 3. COLOR TOKENS (color.md › Best practices; values computed, not estimated)
+ *    Light                                    contrast
+ *    surface   #F5F5F7  app canvas            ink 15.3:1 · ink-2 4.66:1
+ *    content   #FFFFFF  cards/controls        ink 16.6:1 · ink-2 5.07:1
+ *    ink       #1D1D1F  primary text          16.6:1 on content
+ *    ink-2     #6E6E73  secondary text        5.07:1 on content · 4.66:1 on surface
+ *    ink-3     #86868B  decorative/disabled   (3.62:1 — never small text)
+ *    accent    #0071E3  links/active/focus    text on content 4.70:1
+ *    accent-fill #0071E3 prominent CTA bg     white label 4.70:1  (AA for 17px)
+ *    accent-soft #EAF3FF selected surfaces    accent-strong 6.2:1
+ *    accent-strong #0058B0 text on soft       6.2:1
+ *    warn      #B45309  warning text          5.02:1 on content
+ *    danger    #BE123C  caps/destructive text 6.28:1 on content
+ *    danger-fill #E11D48 warning fill         white label 4.70:1
+ *    ok        #047857  success/submitted     5.48:1 on content
+ *    paper     #FFFFFF  chart figure (fixed)  chart tick #6E6E73 5.07:1
+ *
+ *    Dark (dark-mode.md; color.md › Best practices: supply light AND dark)
+ *    surface   #000000  ink 15.9:1
+ *    content   #1C1C1E  ink 15.5:1 · ink-2 6.61:1
+ *    ink       #F5F5F7 · ink-2 #A1A1A6 · ink-3 #8E8E93
+ *    accent    #0A84FF  links/active on content 4.67:1
+ *    accent-fill #0068D6 white label 5.31:1
+ *    accent-soft #102A45 · accent-strong #6CB8FF 6.9:1
+ *    warn      #FFB340 9.5:1 · danger #FF6482 6.0:1 · danger-fill #D70015 white 5.4:1
+ *
+ * 4. TYPE ROLES (typography.md › Ensuring legibility; iOS default 17 pt -> 17px)
+ *    display    34/42  -0.02em  hero (sm+ scales to 40/48 at lg)
+ *    title      28/34  -0.02em  report h1, score moment
+ *    headline   17/22  semibold section + card titles
+ *    body       17/26           prompts, answers, report prose
+ *    subhead    15/22           controls, dense rows
+ *    footnote   13/20           captions, metadata (>= 11px floor; never < 12px)
+ *    caption    12/16           chips, labels; tabular-nums on every number
+ *    caption 2 (11px uppercase micro labels) is the floor and only for labels.
+ *
+ * 5. LAYOUT — ASCII wireframes (layout.md › Adaptability; iPadOS rule: defer the
+ *    compact switch until the full layout no longer fits)
+ *
+ *    Compact 320–639                     Regular >=1024
+ *    ┌──────────────────────────┐        ┌──────────────────────────────────────────────┐
+ *    │ Setup                    │        │ Setup                                        │
+ *    │  IELTS ACADEMIC WRITING  │        │  ┌─────────────────────┐  ┌────────────────┐ │
+ *    │  You've got this         │        │  │ eyebrow + display    │  │ Order/Clock    │ │
+ *    │  28px display            │        │  │ 34–40px display      │  │ T1/T2 summary  │ │
+ *    │  Order/Clock/T1/T2 rows  │        │  │ tip (neutral)        │  │ [Start 60 min] │ │
+ *    │  [ Start 60-minute ]     │ 44px   │  └─────────────────────┘  │ [Random]       │ │
+ *    │  [ Random prompts  ]     │        │  ▸ Task 1  ▸ Task 2  ▸ Order  ▸ Demos        │ │
+ *    │  Tip (neutral, not amber)│        └──────────────────────────────────────────────┘
+ *    │  ▸ Task 1 ▸ Task 2 ...   │
+ *    └──────────────────────────┘        Exam: glass header full width (wordmark · Task
+ *    Exam: one column; glass       tabs · timer pill · Submit) then 46fr prompt/figure
+ *    header wraps; editor below    |  54fr editor, both max-h with their own scroll.
+ *    the figure; 44px targets.     Report: 5xl column; summary card, criteria grid 2-col,
+ *    Report: stack summary;        reference tabs 2-col. Model answers never stretched
+ *    criteria single column;       wider than ~70ch.
+ *    tabs wrap in one row.
+ *
+ * 6. SIGNATURE (SKILL.md step 2 › signature; craft: boldness in one place)
+ *    The timer pill: a frosted capsule with tabular mono numerals and a 3px
+ *    progress sliver that only turns amber/red when the exam actually warns.
+ *    Everything else stays quiet so this is the one moving part. The report's
+ *    band numeral is its payoff. Blue is never used for the clock.
+ *
+ * 7. MOTION (motion.md; accessibility.md › Cognitive)
+ *    One duration across the app: 150ms ease-out for state changes; the timer
+ *    sliver is the single 300ms moment. prefers-reduced-motion collapses both
+ *    (see @layer base), and decrease-transparency gets an opaque header.
+ * ========================================================================== */
+
+:root {
+  color-scheme: light;
+  --surface: 245 245 247; /* #F5F5F7 */
+  --content: 255 255 255; /* #FFFFFF */
+  --ink: 29 29 31; /* #1D1D1F */
+  --ink-2: 110 110 115; /* #6E6E73 */
+  --ink-3: 134 134 139; /* #86868B */
+  --accent: 0 113 227; /* #0071E3 */
+  --accent-fill: 0 113 227; /* #0071E3 */
+  --accent-soft: 234 243 255; /* #EAF3FF */
+  --accent-strong: 0 88 176; /* #0058B0 */
+  --line: 210 210 215; /* #D2D2D7 (opaque separator) */
+  --line-soft: 232 232 237; /* #E8E8ED (hairline) */
+  --warn: 180 83 9; /* #B45309 */
+  --warn-soft: 255 251 235; /* #FFFBEB */
+  --danger: 190 18 60; /* #BE123C */
+  --danger-fill: 225 29 72; /* #E11D48 */
+  --danger-soft: 255 241 242; /* #FFF1F2 */
+  --ok: 4 120 87; /* #047857 */
+  --ok-soft: 236 253 245; /* #ECFDF5 */
+  --paper: 255 255 255; /* fixed chart figure surface */
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --surface: 0 0 0; /* #000000 */
+    --content: 28 28 30; /* #1C1C1E */
+    --ink: 245 245 247; /* #F5F5F7 */
+    --ink-2: 161 161 166; /* #A1A1A6 */
+    --ink-3: 142 142 147; /* #8E8E93 */
+    --accent: 10 132 255; /* #0A84FF */
+    --accent-fill: 0 104 214; /* #0068D6 — keeps white labels at 5.31:1 */
+    --accent-soft: 16 42 69; /* #102A45 */
+    --accent-strong: 108 184 255; /* #6CB8FF */
+    --line: 56 56 60; /* #38383C */
+    --line-soft: 44 44 46; /* #2C2C2E */
+    --warn: 255 179 64; /* #FFB340 */
+    --warn-soft: 58 42 16; /* #3A2A10 */
+    --danger: 255 100 130; /* #FF6482 */
+    --danger-fill: 215 0 21; /* #D70015 — white label 5.38:1 */
+    --danger-soft: 59 18 32; /* #3B1220 */
+    --ok: 48 209 88; /* #30D158 */
+    --ok-soft: 12 42 28; /* #0C2A1C */
+    --paper: 255 255 255;
+  }
+}
+
+/* Increase Contrast supplies stronger separators and secondary text, the same
+   idea as the system's Increase Contrast setting (color.md › Best practices). */
+@media (prefers-contrast: more) {
+  :root {
+    --ink-2: 66 66 69;
+    --line: 142 142 147;
+  }
+}
+
+@media (prefers-color-scheme: dark) and (prefers-contrast: more) {
+  :root {
+    --ink-2: 199 199 204;
+    --line: 99 99 102;
+  }
+}
+
 @layer base {
   html {
     height: 100%;
+    /* Respect device text scaling instead of letting mobile Safari inflate it.
+       Typography.md › Supporting Dynamic Type: layouts must survive the
+       largest sizes, so everything is sized in rem-friendly roles. */
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
   }
 
-  /* Warm stone canvas instead of cool slate: less exam-hall, same AA contrast. */
+  /* System surface + system type stack. No network fonts: the app is offline
+     and typography.md › Using system fonts is the right call for controls. */
   body {
-    @apply min-h-full bg-stone-100 font-sans text-slate-900 antialiased;
+    @apply min-h-full bg-surface font-sans text-body text-ink antialiased;
+    /* Long ids, quotes and URLs wrap rather than widening the page. */
+    overflow-wrap: break-word;
   }
 
-  /* Warm text selection. The answer textarea overrides this with its own
-     low-contrast slate tone (allowHighlight: false contract). */
+  /* One selection color app-wide: the accent, like the system. The answer
+     textarea deliberately overrides this with a muted tone (see AnswerBox). */
   ::selection {
-    @apply bg-amber-200/70 text-slate-900;
+    background-color: rgb(var(--accent) / 0.22);
   }
 
-  /* Hide the default disclosure triangle; PlanningNotes draws its own chevron. */
+  /* Keyboard focus is the accent ring everywhere (accessibility.md › Mobility;
+     focus-and-selection). Components may opt into an inset variant. */
+  :focus-visible {
+    outline: 2px solid rgb(var(--accent));
+    outline-offset: 2px;
+  }
+
+  /* Hide the default disclosure triangle; disclosures draw their own chevron. */
   summary::-webkit-details-marker {
     display: none;
   }
 
   summary {
     list-style: none;
+  }
+
+  /* Reduced motion: keep state changes instant, no sliding bars or pulses.
+     Motion is never the only carrier of meaning in this app
+     (accessibility.md › Cognitive). */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@layer components {
+  /* Functional-layer material only: the sticky exam header is the one glass
+     surface. The timer pill stays opaque so its numerals hold full contrast
+     while content scrolls; cards in the content layer stay opaque too
+     (materials.md › Liquid Glass: "Don't use Liquid Glass in the content layer").
+     Regular variant values from the curated liquid-glass.md guide: ~20px blur,
+     1.2–1.5 saturation, 80% fill. */
+  .glass {
+    background-color: rgb(var(--content) / 0.8);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    backdrop-filter: saturate(180%) blur(20px);
+  }
+
+  /* Reduce Transparency fallback: opaque header, no blur. */
+  @media (prefers-reduced-transparency: reduce) {
+    .glass {
+      background-color: rgb(var(--content));
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+    }
+  }
+
+  /* Print scope for figures. Recreated chart tasks are exam paper: inside this
+     scope the light token values stay fixed even in dark appearance, so axis
+     labels, tables and legends keep their measured contrast on the paper
+     surface (charts.md › Best practices; the figure is content, not chrome). */
+  .paper {
+    --ink: 29 29 31;
+    --ink-2: 110 110 115;
+    --ink-3: 134 134 139;
+    --line: 210 210 215;
+    --line-soft: 232 232 237;
+    --surface: 245 245 247;
+    --content: 255 255 255;
+    --tint-soft: 234 243 255;
+    --tint-strong: 0 88 176;
+    --warn-soft: 255 251 235;
+    --ok-soft: 236 253 245;
+    --danger-soft: 255 241 242;
+    background-color: rgb(var(--paper));
+    color: rgb(var(--ink));
   }
 }

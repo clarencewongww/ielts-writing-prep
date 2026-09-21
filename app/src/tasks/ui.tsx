@@ -1,6 +1,9 @@
 /**
  * Small presentational primitives shared by the task views.
- * Tailwind utility classes only — no custom theme tokens required.
+ *
+ * Step 4: tones are semantic tokens, not hues. Informational tones share the
+ * accent-soft tint; amber/rose/emerald stay status-only (color.md › Best
+ * practices: "Avoid using the same color to mean different things").
  */
 
 import type { ReactNode } from 'react';
@@ -9,12 +12,12 @@ import { cx } from './format';
 export type BadgeTone = 'slate' | 'teal' | 'amber' | 'rose' | 'indigo' | 'emerald';
 
 const BADGE_TONES: Record<BadgeTone, string> = {
-  slate: 'bg-slate-100 text-slate-700 ring-slate-200',
-  teal: 'bg-teal-50 text-teal-800 ring-teal-200',
-  amber: 'bg-amber-50 text-amber-800 ring-amber-200',
-  rose: 'bg-rose-50 text-rose-700 ring-rose-200',
-  indigo: 'bg-indigo-50 text-indigo-700 ring-indigo-200',
-  emerald: 'bg-emerald-50 text-emerald-800 ring-emerald-200',
+  slate: 'bg-content text-ink-2 ring-line',
+  teal: 'bg-tint-soft text-tint-strong ring-tint/20',
+  amber: 'bg-warn-soft text-warn ring-warn/25',
+  rose: 'bg-danger-soft text-danger ring-danger/25',
+  indigo: 'bg-tint-soft text-tint-strong ring-tint/20',
+  emerald: 'bg-ok-soft text-ok ring-ok/25',
 };
 
 export function Badge({
@@ -32,7 +35,7 @@ export function Badge({
     <span
       title={title}
       className={cx(
-        'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium ring-1 ring-inset',
+        'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-caption font-medium ring-1 ring-inset',
         BADGE_TONES[tone],
         className,
       )}
@@ -46,7 +49,7 @@ export function Chip({ children, className }: { children: ReactNode; className?:
   return (
     <span
       className={cx(
-        'inline-flex items-center rounded border border-slate-200 bg-white px-1.5 py-0.5 text-[11px] text-slate-600',
+        'inline-flex items-center rounded bg-content px-1.5 py-0.5 text-caption text-ink-2 ring-1 ring-inset ring-line',
         className,
       )}
     >
@@ -66,15 +69,15 @@ export function SectionHeading({
 }) {
   return (
     <div className={cx('mb-1.5 flex flex-wrap items-baseline justify-between gap-2', className)}>
-      <h4 className="text-xs font-semibold uppercase tracking-wide text-slate-500">{children}</h4>
-      {hint ? <span className="text-[11px] text-slate-400">{hint}</span> : null}
+      <h4 className="text-caption font-semibold uppercase tracking-wide text-ink-2">{children}</h4>
+      {hint ? <span className="text-caption text-ink-2">{hint}</span> : null}
     </div>
   );
 }
 
 export function Card({ children, className }: { children: ReactNode; className?: string }) {
   return (
-    <div className={cx('rounded-lg border border-slate-200 bg-white p-3 shadow-sm', className)}>
+    <div className={cx('rounded-control border border-line bg-content p-3.5 shadow-card', className)}>
       {children}
     </div>
   );
@@ -101,25 +104,25 @@ export function Collapsible({
     <details
       data-testid={testId}
       open={defaultOpen}
-      className={cx('group rounded-lg border border-slate-200 bg-white', className)}
+      className={cx('group rounded-control border border-line bg-content', className)}
     >
-      <summary className="flex cursor-pointer list-none flex-wrap items-center justify-between gap-x-2 gap-y-1 rounded-lg px-3 py-2 text-sm font-medium text-slate-700 focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-slate-500 marker:content-none">
+      <summary className="flex min-h-[44px] cursor-pointer list-none flex-wrap items-center justify-between gap-x-2 gap-y-1 rounded-control px-3.5 py-2 text-subhead font-medium text-ink focus-visible:outline-tint marker:content-none">
         <span className="flex items-center gap-2">
-          <span className="text-slate-400 transition-transform group-open:rotate-90" aria-hidden="true">
+          <span className="text-ink-3 transition-transform ease-apple group-open:rotate-90" aria-hidden="true">
             ▶
           </span>
           {summary}
         </span>
         {aside}
       </summary>
-      <div className="border-t border-slate-100 px-3 py-2.5">{children}</div>
+      <div className="border-t border-line-soft px-3.5 py-2.5">{children}</div>
     </details>
   );
 }
 
 export function EmptyNote({ children }: { children: ReactNode }) {
   return (
-    <p className="rounded-md border border-dashed border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-500">
+    <p className="rounded-control border border-dashed border-line bg-surface px-3 py-2 text-subhead text-ink-2">
       {children}
     </p>
   );
@@ -128,5 +131,5 @@ export function EmptyNote({ children }: { children: ReactNode }) {
 /** Renders the item's `unitsNote` above a figure, as required for chart tasks. */
 export function UnitsNote({ note }: { note?: string | null }) {
   if (!note) return null;
-  return <p className="mb-2 text-xs italic leading-snug text-slate-500">{note}</p>;
+  return <p className="mb-2 text-footnote italic leading-snug text-ink-2">{note}</p>;
 }

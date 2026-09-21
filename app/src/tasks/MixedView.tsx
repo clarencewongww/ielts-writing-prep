@@ -75,7 +75,7 @@ export function MixedView({ item, title, className, depth = 0, showStatement = f
 
   if (children.length === 0) {
     return (
-      <section className={cx('rounded-lg border border-dashed border-slate-300 bg-slate-50 p-3', className)}>
+      <section className={cx('paper rounded-control border border-dashed border-line p-3.5', className)}>
         <p className="text-sm text-slate-500">Mixed task {item.specId} has no sub-charts in the bank data.</p>
         <ChartAttribution />
       </section>
@@ -83,9 +83,9 @@ export function MixedView({ item, title, className, depth = 0, showStatement = f
   }
 
   return (
-    <section className={cx('w-full', className)} data-spec-id={item.specId} data-mixed-with={item.mixedWith ?? childTypes.join('+')}>
+    <section className={cx('paper w-full min-w-0 rounded-control p-3 ring-1 ring-inset ring-line/60', className)} data-spec-id={item.specId} data-mixed-with={item.mixedWith ?? childTypes.join('+')}>
       <header className="mb-3 flex flex-wrap items-center gap-2">
-        {title ? <h3 className="text-sm font-semibold text-slate-800">{title}</h3> : null}
+        {title ? <h3 className="text-subhead font-semibold text-ink">{title}</h3> : null}
         <Badge tone="indigo" title="Chart types in this task">
           {pluralize(children.length, 'chart')}: {childTypes.join(' + ')}
         </Badge>
@@ -94,18 +94,23 @@ export function MixedView({ item, title, className, depth = 0, showStatement = f
       </header>
 
       {showStatement && item.statement ? (
-        <p className="mb-3 rounded border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700">{item.statement}</p>
+        <p className="mb-3 rounded-control bg-surface px-3.5 py-2 text-subhead text-ink">{item.statement}</p>
       ) : null}
 
+      {/* Each sub-figure gets its own scroll container so a wide table or process
+          diagram never widens the page; min-w-0 keeps it from forcing the panel. */}
       <div className="space-y-6">
         {children.map((child, index) => (
-          <div key={child.specId ?? index} className="rounded-lg border border-slate-200 bg-white p-3">
-            <h4 className="mb-2 flex flex-wrap items-center gap-2 text-sm font-semibold text-slate-700">
-              <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-slate-800 text-[11px] font-semibold text-white">
+          <div
+            key={child.specId ?? index}
+            className="min-w-0 max-w-full overflow-x-auto rounded-control p-2 ring-1 ring-inset ring-line/60"
+          >
+            <h4 className="mb-2 flex flex-wrap items-center gap-2 text-subhead font-semibold text-ink">
+              <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-tint-soft text-[11px] font-semibold text-tint-strong">
                 {index + 1}
               </span>
               {child.title ?? `${humanizeToken(child.type ?? '')} chart`}
-              <span className="font-mono text-[11px] font-normal text-slate-400">{child.specId}</span>
+              <span className="font-mono text-caption font-normal text-ink-2">{child.specId}</span>
             </h4>
             <ChildTaskView item={child} depth={depth} />
           </div>
@@ -113,16 +118,16 @@ export function MixedView({ item, title, className, depth = 0, showStatement = f
       </div>
 
       {keyFeatures.length > 0 ? (
-        <div className="mt-4 rounded-lg border border-teal-200 bg-teal-50/50 p-3">
-          <h4 className="mb-1 text-xs font-semibold uppercase tracking-wide text-teal-800">
+        <div className="mt-4 rounded-control bg-tint-soft p-3.5">
+          <h4 className="mb-1 text-caption font-semibold uppercase tracking-wide text-tint-strong">
             Combined key features ({keyFeatures.length})
           </h4>
-          <ol className="list-decimal space-y-1 pl-5 text-sm text-slate-700">
+          <ol className="list-decimal space-y-1 pl-5 text-subhead text-ink">
             {keyFeatures.map((feature, index) => (
               <li key={feature.id ?? index}>{feature.description}</li>
             ))}
           </ol>
-          <p className="mt-1 text-[11px] text-teal-700">Your overview must cover both charts, not one of them.</p>
+          <p className="mt-1 text-caption text-tint-strong">Your overview must cover both charts, not one of them.</p>
         </div>
       ) : (
         <EmptyNote>No combined key features recorded for this mixed task.</EmptyNote>
@@ -131,7 +136,7 @@ export function MixedView({ item, title, className, depth = 0, showStatement = f
       {item.groupingStrategy ? (
         <div className="mt-3">
           <Collapsible summary="Suggested organisation">
-            <p className="text-sm text-slate-600">{item.groupingStrategy}</p>
+            <p className="text-subhead text-ink-2">{item.groupingStrategy}</p>
           </Collapsible>
         </div>
       ) : null}

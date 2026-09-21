@@ -30,46 +30,48 @@ export function PromptCard({ task, item, chartSlot }: PromptCardProps) {
       <article
         data-testid="prompt-card"
         data-task={task}
-        className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
+        className="rounded-card border border-line bg-content p-4 shadow-card"
       >
         <PromptHeader
           badge={`Task 1 · ${TASK1_TYPE_LABELS[chart.type] ?? chart.type}`}
           topic={chart.topic}
           recommendedMinutes={recommended}
         />
-        <p className="mt-3 text-[15px] font-medium leading-7 text-slate-900">{chart.statement}</p>
-        <dl className="mt-3 grid gap-x-4 gap-y-1 text-xs text-slate-500 sm:grid-cols-2">
+        <p className="mt-3 text-body text-ink">{chart.statement}</p>
+        <dl className="mt-3 grid gap-x-4 gap-y-1 text-footnote text-ink-2 sm:grid-cols-2">
           <div className="flex gap-1.5">
-            <dt className="font-medium text-slate-600">Time frame</dt>
+            <dt className="font-medium text-ink-2">Time frame</dt>
             <dd>{formatYears(chart.timeFrame?.values)}</dd>
           </div>
           <div className="flex gap-1.5">
-            <dt className="font-medium text-slate-600">Write about</dt>
+            <dt className="font-medium text-ink-2">Write about</dt>
             <dd>{chart.categories.slice(0, 4).join(", ")}{chart.categories.length > 4 ? "…" : ""}</dd>
           </div>
         </dl>
         {chartSlot ?? <ChartRenderer item={chart} />}
         {chart.type === "process" && (
+          /* Informational disclosure, so it wears the accent-soft tint rather
+             than a one-off sky/teal hue. */
           <details
             data-testid="process-exempt-hint"
-            className="group mt-3 rounded-lg border border-sky-200 bg-sky-50"
+            className="group mt-3 rounded-control bg-tint-soft"
           >
-            <summary className="flex cursor-pointer list-none flex-wrap items-center justify-between gap-x-2 gap-y-1 rounded-lg px-3 py-2 text-xs font-semibold text-sky-900 focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-sky-700 marker:content-none">
+            <summary className="flex min-h-[44px] cursor-pointer list-none flex-wrap items-center justify-between gap-x-2 gap-y-1 rounded-control px-3.5 py-2 text-footnote font-semibold text-tint-strong focus-visible:outline-tint marker:content-none">
               <span className="flex items-center gap-2">
                 <span
                   aria-hidden="true"
-                  className="text-sky-500 transition-transform group-open:rotate-90"
+                  className="text-tint transition-transform ease-apple group-open:rotate-90"
                 >
                   ▶
                 </span>
                 Process diagram tip
               </span>
-              <span className="text-[11px] font-normal text-sky-700">
+              <span className="text-caption font-normal text-tint-strong">
                 <span className="group-open:hidden">tap to expand</span>
                 <span className="hidden group-open:inline">tap to collapse</span>
               </span>
             </summary>
-            <p className="border-t border-sky-100 px-3 py-2 text-xs leading-5 text-sky-900">
+            <p className="border-t border-tint/15 px-3.5 py-2 text-footnote leading-5 text-tint-strong">
               Process diagrams are exempt from the &ldquo;one figure per body sentence&rdquo; rule — describe each
               stage in order, using time markers only where the task provides them.
             </p>
@@ -85,28 +87,28 @@ export function PromptCard({ task, item, chartSlot }: PromptCardProps) {
     <article
       data-testid="prompt-card"
       data-task={task}
-      className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
+      className="rounded-card border border-line bg-content p-4 shadow-card"
     >
       <PromptHeader
         badge={`Task 2 · ${TASK2_FAMILY_LABELS[prompt.family] ?? prompt.family}`}
         topic={prompt.topic}
         recommendedMinutes={recommended}
       />
-      <p className="mt-3 text-[15px] font-medium leading-7 text-slate-900">{prompt.statement}</p>
-      <p className="mt-3 rounded-lg border-l-4 border-slate-300 bg-slate-50 px-3 py-2 text-[15px] font-semibold leading-7 text-slate-900">
+      <p className="mt-3 text-body text-ink">{prompt.statement}</p>
+      <p className="mt-3 rounded-control bg-surface px-3.5 py-2.5 text-body font-semibold text-ink">
         {prompt.instruction}
       </p>
-      <dl className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-500">
+      <dl className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-footnote text-ink-2">
         <div className="flex gap-1.5">
-          <dt className="font-medium text-slate-600">Questions</dt>
+          <dt className="font-medium text-ink-2">Questions</dt>
           <dd>{prompt.questionCount}</dd>
         </div>
         <div className="flex gap-1.5">
-          <dt className="font-medium text-slate-600">Opinion required</dt>
+          <dt className="font-medium text-ink-2">Opinion required</dt>
           <dd>{prompt.opinionRequired ? "yes" : "no"}</dd>
         </div>
         <div className="flex gap-1.5">
-          <dt className="font-medium text-slate-600">Structure</dt>
+          <dt className="font-medium text-ink-2">Structure</dt>
           <dd>introduction · bodies · conclusion</dd>
         </div>
       </dl>
@@ -126,11 +128,11 @@ function PromptHeader({
 }) {
   return (
     <header className="flex flex-wrap items-center gap-2">
-      <span className="rounded-full bg-slate-900 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-white">
+      <span className="rounded-full bg-tint-soft px-2.5 py-1 text-caption font-semibold uppercase tracking-wide text-tint-strong">
         {badge}
       </span>
-      <span className="text-xs text-slate-500">{topic}</span>
-      <span className="ml-auto rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-[11px] font-medium text-slate-600">
+      <span className="text-caption text-ink-2">{topic}</span>
+      <span className="ml-auto rounded-full bg-surface px-2.5 py-1 text-caption font-medium text-ink-2">
         suggested {recommendedMinutes} min
       </span>
     </header>
@@ -145,7 +147,7 @@ function PromptHeader({
 function CardFooter({ policy }: { policy?: string }) {
   return (
     <p
-      className="mt-4 border-t border-slate-100 pt-2 text-[11px] leading-5 text-slate-500"
+      className="mt-4 border-t border-line-soft pt-2 text-caption leading-5 text-ink-2"
       title={policy ? `App policy: ${policy}` : undefined}
     >
       {ATTRIBUTION_TEXT}

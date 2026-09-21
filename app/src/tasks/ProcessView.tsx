@@ -75,7 +75,7 @@ export function ProcessView({ item, title, className }: ProcessViewProps) {
 
   if (stages.length === 0) {
     return (
-      <section className={cx('rounded-lg border border-dashed border-slate-300 bg-slate-50 p-3', className)}>
+      <section className={cx('paper rounded-control border border-dashed border-line p-3.5', className)}>
         <p className="text-sm text-slate-500">Process {item.specId} has no stages in the bank data.</p>
         <ChartAttribution />
       </section>
@@ -111,11 +111,11 @@ export function ProcessView({ item, title, className }: ProcessViewProps) {
       : `M ${last.x + boxW + 6} ${last.y + BOX_H / 2} H ${W - 4} V 14 H ${first.x + boxW / 2} V ${first.y - 6}`;
 
   return (
-    <figure className={cx('w-full', className)} data-spec-id={item.specId} data-figure="app-generated">
+    <figure className={cx('paper w-full rounded-control p-2.5 ring-1 ring-inset ring-line/60', className)} data-spec-id={item.specId} data-figure="app-generated">
       {title ? <figcaption className="mb-1 text-sm font-semibold text-slate-700">{title}</figcaption> : null}
       {item.unitsNote ? <p className="mb-2 text-xs italic leading-snug text-slate-500">{item.unitsNote}</p> : null}
 
-      <div className="overflow-x-auto rounded border border-slate-200 bg-white p-2">
+      <div className="overflow-x-auto rounded-control p-1.5">
         <svg
           viewBox={`0 0 ${W} ${height}`}
           className="block h-auto w-full min-w-[560px]"
@@ -124,7 +124,7 @@ export function ProcessView({ item, title, className }: ProcessViewProps) {
         >
           <defs>
             <marker id={arrowId} viewBox="0 0 8 8" refX="6.5" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-              <path d="M 0 0 L 8 4 L 0 8 z" fill="#64748b" />
+              <path d="M 0 0 L 8 4 L 0 8 z" fill="#6E6E73" />
             </marker>
           </defs>
 
@@ -141,11 +141,11 @@ export function ProcessView({ item, title, className }: ProcessViewProps) {
                   width={boxW}
                   height={BOX_H}
                   rx={7}
-                  fill={item.isCycle ? '#f0fdfa' : '#f8fafc'}
-                  stroke="#0f766e"
+                  fill={item.isCycle ? '#EAF3FF' : '#F5F5F7'}
+                  stroke="#0071E3"
                   strokeWidth={1.4}
                 />
-                <circle cx={box.x + 17} cy={box.y + 17} r={9} fill="#0f766e" />
+                <circle cx={box.x + 17} cy={box.y + 17} r={9} fill="#0071E3" />
                 <text x={box.x + 17} y={box.y + 20.6} fontSize={10.5} textAnchor="middle" fill="#ffffff" fontWeight={600}>
                   {isFiniteNumber(box.stage.order) ? box.stage.order : box.index + 1}
                 </text>
@@ -156,18 +156,18 @@ export function ProcessView({ item, title, className }: ProcessViewProps) {
                     y={box.y + 21 + lineIndex * 16}
                     fontSize={13}
                     fontWeight={700}
-                    fill="#0f172a"
+                    fill="#1D1D1F"
                   >
                     {line}
                   </text>
                 ))}
-                <text x={box.x + 12} y={box.y + 60} fontSize={10.5} fill="#334155">
+                <text x={box.x + 12} y={box.y + 60} fontSize={10.5} fill="#6E6E73">
                   {truncate(`in: ${box.stage.input ?? '—'}`, bodyChars)}
                 </text>
-                <text x={box.x + 12} y={box.y + 77} fontSize={10.5} fill="#0f766e">
+                <text x={box.x + 12} y={box.y + 77} fontSize={10.5} fill="#0071E3">
                   {truncate(`out: ${box.stage.output ?? '—'}`, bodyChars)}
                 </text>
-                <text x={box.x + 12} y={box.y + 94} fontSize={9.5} fontStyle="italic" fill="#64748b">
+                <text x={box.x + 12} y={box.y + 94} fontSize={9.5} fontStyle="italic" fill="#6E6E73">
                   {truncate(box.stage.equipment ?? '', bodyChars + 6)}
                 </text>
 
@@ -203,7 +203,7 @@ export function ProcessView({ item, title, className }: ProcessViewProps) {
               <path
                 d={cyclePath}
                 fill="none"
-                stroke="#0f766e"
+                stroke="#0071E3"
                 strokeWidth={1.4}
                 strokeDasharray="7 5"
                 markerEnd={`url(#${arrowId})`}
@@ -213,7 +213,7 @@ export function ProcessView({ item, title, className }: ProcessViewProps) {
                 y={9}
                 fontSize={11}
                 textAnchor={last.col === 0 ? 'start' : 'end'}
-                fill="#0f766e"
+                fill="#0071E3"
                 fontWeight={600}
               >
                 the cycle repeats
@@ -221,10 +221,10 @@ export function ProcessView({ item, title, className }: ProcessViewProps) {
             </>
           ) : (
             <>
-              <text x={first.x + boxW / 2} y={first.y - 8} fontSize={11} textAnchor="middle" fill="#94a3b8">
+              <text x={first.x + boxW / 2} y={first.y - 8} fontSize={11} textAnchor="middle" fill="#86868B">
                 start
               </text>
-              <text x={last.x + boxW / 2} y={last.y + BOX_H + 15} fontSize={11} textAnchor="middle" fill="#94a3b8">
+              <text x={last.x + boxW / 2} y={last.y + BOX_H + 15} fontSize={11} textAnchor="middle" fill="#86868B">
                 end
               </text>
             </>

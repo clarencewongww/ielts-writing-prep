@@ -19,6 +19,7 @@ import { findCopiedRuns } from "../data/wordCount";
 import type { EvidenceSpan, Task2Family, Task2Item } from "../types/bank";
 import type { Criterion, CriterionBand, DeterministicCheck, FeedbackItem, TaskGrade } from "../types/grading";
 import { prioritizeFeedback } from "./feedback";
+import { CAP_REASONS } from "./caps";
 import {
   complexSentenceStats,
   detectGrammarErrors,
@@ -888,9 +889,7 @@ export function gradeTask2(item: Task2Item, rawText: string): Task2Grade {
     cap: 5,
     label: "Word-count minimum",
     observed: `${metrics.words} words (minimum ${minimum})${metrics.copiedWords > 0 ? `, ${metrics.copiedWords} copied from the prompt` : ""}`,
-    reason: tooShort
-      ? `Only ${metrics.words} words: under-length answers cannot develop ideas, so Task Response is capped at band 5.`
-      : "Meets the 250-word minimum.",
+    reason: CAP_REASONS["t2.words.min"]({ words: metrics.words, min: minimum }),
     severity: "cap",
     evidence: spanOf(text, 0, Math.min(text.length, 120)),
     feedbackStarter: `Your response is ${metrics.words} words — ${Math.max(0, minimum - metrics.words)} below the ${minimum}-word minimum.`,
@@ -904,7 +903,7 @@ export function gradeTask2(item: Task2Item, rawText: string): Task2Grade {
     cap: 8,
     label: "Word-count ceiling",
     observed: `${metrics.words} words (ceiling ${ceiling})`,
-    reason: metrics.words > ceiling ? `Over the ${ceiling}-word ceiling: trim unfocused sentences.` : "Within the ceiling.",
+    reason: CAP_REASONS["t2.words.ceiling"]({ words: metrics.words, ceiling }),
     severity: "upgrade",
     evidence: spanOf(text, 0, Math.min(text.length, 120)),
     feedbackStarter: `Your response is ${metrics.words} words — above the ${ceiling}-word ceiling, where extra length usually adds unfocused ideas and errors.`,
@@ -929,7 +928,7 @@ export function gradeTask2(item: Task2Item, rawText: string): Task2Grade {
     cap: 5,
     label: "Conclusion present",
     observed: conclusion.present ? "conclusion paragraph found" : "no conclusion paragraph",
-    reason: conclusion.present ? "Conclusion present." : "No conclusion: Task Response cannot exceed band 5.",
+    reason: CAP_REASONS["t2.structure.conclusion"](),
     severity: "cap",
     evidence: conclusionSpan,
     feedbackStarter: conclusion.present ? "Conclusion present." : "Your essay ends without a conclusion, so Task Response is capped at band 5.",
@@ -944,9 +943,7 @@ export function gradeTask2(item: Task2Item, rawText: string): Task2Grade {
     cap: 5,
     label: "Paragraph count 4–5",
     observed: `${metrics.paragraphs} paragraph(s)`,
-    reason: paragraphCountOk
-      ? "Paragraph count within 4–5."
-      : "Illegal paragraph count (fewer than 4, or 6+): Coherence & Cohesion capped at 5.",
+    reason: CAP_REASONS["t2.structure.paragraphs"]({ paragraphs: metrics.paragraphs }),
     severity: "cap",
     evidence: paragraphs[1] ? spanOf(text, paragraphs[1].startChar, Math.min(paragraphs[1].endChar, paragraphs[1].startChar + 120)) : spanOf(text, 0, 0),
     feedbackStarter: `Your essay has ${metrics.paragraphs} paragraph(s); IELTS Task 2 expects four or five (introduction, 2–3 bodies, conclusion).`,
@@ -961,7 +958,7 @@ export function gradeTask2(item: Task2Item, rawText: string): Task2Grade {
     cap: 5,
     label: "Two or three body paragraphs",
     observed: `${metrics.bodyParagraphs} body paragraph(s)`,
-    reason: bodyCountOk ? "Body count within 2–3." : "One body paragraph (or four+) caps Coherence & Cohesion at band 5.",
+    reason: CAP_REASONS["t2.structure.bodies"]({ bodies: metrics.bodyParagraphs }),
     severity: "cap",
     evidence: paragraphs[1] ? spanOf(text, paragraphs[1].startChar, Math.min(paragraphs[1].endChar, paragraphs[1].startChar + 120)) : spanOf(text, 0, 0),
     feedbackStarter: `Your essay develops its argument in ${metrics.bodyParagraphs} body paragraph(s); two or three are required.`,
@@ -975,7 +972,7 @@ export function gradeTask2(item: Task2Item, rawText: string): Task2Grade {
     cap: 8,
     label: "Conclusion signposted",
     observed: conclusion.strongLink ? "starts with In conclusion / To conclude" : "no strong conclusion linker",
-    reason: conclusion.strongLink ? "Conclusion is signposted." : "Conclusion is not signposted with `In conclusion` / `To conclude`.",
+    reason: CAP_REASONS["t2.structure.conclusion-link"](),
     severity: "upgrade",
     evidence: conclusionParagraph ? spanOf(text, conclusionParagraph.startChar, Math.min(conclusionParagraph.endChar, conclusionParagraph.startChar + 90)) : spanOf(text, 0, 0),
     feedbackStarter: "Your final paragraph is not signposted as a conclusion.",
@@ -992,7 +989,7 @@ export function gradeTask2(item: Task2Item, rawText: string): Task2Grade {
       cap: 5,
       label: "Position stated when required",
       observed: missing ? "no explicit position" : "explicit position found",
-      reason: missing ? "The task asks for an opinion and no explicit position appears: TR capped at 5." : "Explicit position present.",
+      reason: CAP_REASONS["t2.tr.position.missing"](),
       severity: "cap",
       evidence: introSpan,
       feedbackStarter: "The prompt asks for your opinion, but no explicit position (`In my opinion`, `I largely agree`, …) appears anywhere in the essay.",
@@ -1007,7 +1004,7 @@ export function gradeTask2(item: Task2Item, rawText: string): Task2Grade {
       cap: 6,
       label: "Position in the introduction",
       observed: late ? "position only in the conclusion" : "position appears before the conclusion",
-      reason: late ? "Position is left to the conclusion: TR capped at 6." : "Position is not confined to the conclusion.",
+      reason: CAP_REASONS["t2.tr.position.late"](),
       severity: "cap",
       evidence: conclusionSpan,
       feedbackStarter: "Your position only appears in the conclusion — the examiner needs it in the introduction and throughout.",
@@ -1029,7 +1026,7 @@ export function gradeTask2(item: Task2Item, rawText: string): Task2Grade {
     cap: 5,
     label: "No fence-sitting",
     observed: position.fenceSitting ? "sits on the fence" : "committed position",
-    reason: position.fenceSitting ? "Fence-sitting (agreeing with both sides fully): TR capped at 5." : "Position is committed.",
+    reason: CAP_REASONS["t2.tr.position.fence"](),
     severity: "cap",
     evidence: fenceEvidence,
     feedbackStarter: "You agree with both sides equally, which is fence-sitting — a quantified partial view is allowed, a full both-sides answer is not.",
@@ -1044,7 +1041,7 @@ export function gradeTask2(item: Task2Item, rawText: string): Task2Grade {
     cap: 6,
     label: "Opinion only when asked",
     observed: `${opinionMarkers} opinion marker(s)`,
-    reason: "This task does not ask for an opinion; giving one wastes relevance.",
+    reason: CAP_REASONS["t2.tr.position.forced"](),
     severity: "upgrade",
     evidence: introSpan,
     feedbackStarter: "This task does not ask for your opinion, yet the essay takes a personal stance.",
@@ -1058,7 +1055,7 @@ export function gradeTask2(item: Task2Item, rawText: string): Task2Grade {
     cap: 6,
     label: "Position held consistently",
     observed: position.consistent ? "consistent" : "introduction and conclusion disagree",
-    reason: position.consistent ? "Position consistent." : "The stance changes between introduction and conclusion: TR capped at 6.",
+    reason: CAP_REASONS["t2.tr.position.consistency"](),
     severity: "cap",
     evidence: conclusionSpan,
     feedbackStarter: "Your stance in the conclusion does not match the position you stated in the introduction.",
@@ -1077,7 +1074,7 @@ export function gradeTask2(item: Task2Item, rawText: string): Task2Grade {
     observed: halfAnswered
       ? `missing: ${missingParts.map((part) => part.label).join(", ")}`
       : coverage.parts.map((part) => `${part.label}: ${part.covered ? "yes" : "no"}`).join("; "),
-    reason: halfAnswered ? "At least one question part is unanswered: TR capped at 5." : "All parts addressed.",
+    reason: CAP_REASONS["t2.tr.half-answer"]({ missing: missingParts.map((part) => part.label).join(", ") }),
     severity: "cap",
     evidence: (() => {
       const thin = bodies.find((body) => body.supportMarkers === 0);
@@ -1098,10 +1095,7 @@ export function gradeTask2(item: Task2Item, rawText: string): Task2Grade {
     cap: 6,
     label: "Explicit weighing judgement",
     observed: analysis.weighingLanguage ? "weighing language found" : "no weighing language",
-    reason:
-      needsWeighing && !analysis.weighingLanguage
-        ? "The task asks which side outweighs the other; the verdict is asserted without weighing: TR capped at 6."
-        : "Weighting language present or not required.",
+    reason: CAP_REASONS["t2.tr.weighing"](),
     severity: "cap",
     evidence: conclusionSpan,
     feedbackStarter: "The task asks you to weigh the two sides, but the verdict is not supported with weighing language.",
@@ -1116,7 +1110,7 @@ export function gradeTask2(item: Task2Item, rawText: string): Task2Grade {
     cap: 7,
     label: "Ideas developed, not listed",
     observed: bodies.length === 0 ? "no body paragraphs" : bodies.map((body) => `${body.words}w/${body.supportMarkers} support`).join(", "),
-    reason: thinBody ? "At least one body paragraph is thin (under 70 words or without a supporting reason)." : "Every body develops its idea.",
+    reason: CAP_REASONS["t2.tr.development"](),
     severity: "upgrade",
     evidence: thinBody ? spanOf(text, thinBody.startChar, thinBody.endChar) : lastSentenceSpan(),
     feedbackStarter: thinBody
@@ -1133,7 +1127,7 @@ export function gradeTask2(item: Task2Item, rawText: string): Task2Grade {
     cap: 6,
     label: "Response stays on topic",
     observed: `statement term overlap ${(metrics.statementTermOverlap * 100).toFixed(0)}%`,
-    reason: focusFail ? "Very little of the prompt's key vocabulary appears: the essay may answer the general topic." : "Topic vocabulary present.",
+    reason: CAP_REASONS["t2.tr.focus"](),
     severity: "cap",
     evidence: introSpan,
     feedbackStarter: "The essay uses very little of the question's key vocabulary, so it may answer the general topic rather than the specific issue.",
@@ -1149,7 +1143,7 @@ export function gradeTask2(item: Task2Item, rawText: string): Task2Grade {
     cap: 6,
     label: "One topic per body paragraph",
     observed: bodies.map((body) => `${body.topicSentence ? "topic sentence" : "no topic sentence"}/${body.words}w`).join(", ") || "no bodies",
-    reason: untopicBody ? "A body paragraph has no clear topic sentence or mixes too many ideas." : "Each body has a central topic.",
+    reason: CAP_REASONS["t2.cc.topics"](),
     severity: "upgrade",
     evidence: untopicBody ? spanOf(text, untopicBody.startChar, untopicBody.endChar) : spanOf(text, 0, 0),
     feedbackStarter: untopicBody
@@ -1166,7 +1160,7 @@ export function gradeTask2(item: Task2Item, rawText: string): Task2Grade {
     cap: 6,
     label: "Linkers not mechanical",
     observed: `${metrics.mechanicalListingCount} listing linker(s)`,
-    reason: mechanical ? "Firstly/Secondly paragraphing is mechanical and holds cohesion below band 7." : "Linkers varied.",
+    reason: CAP_REASONS["t2.cc.mechanical"](),
     severity: "upgrade",
     evidence: firstMatchSpan(text, MECHANICAL_LISTING) ?? spanOf(text, 0, 0),
     feedbackStarter: "Your paragraph openers rely on `Firstly` / `Secondly`, which examiners read as mechanical.",
@@ -1182,9 +1176,7 @@ export function gradeTask2(item: Task2Item, rawText: string): Task2Grade {
     cap: 6,
     label: "Range of cohesive devices",
     observed: `${linkerRange} linker family/families: ${metrics.linkerFamilies.join(", ") || "none"}`,
-    reason: !linkerRangeBad
-      ? "Linker range adequate (or cohesion carried by referencing)."
-      : "Fewer than two linking functions and little referencing: cohesion capped at 6.",
+    reason: CAP_REASONS["t2.cc.linkers"](),
     severity: "upgrade",
     evidence: paragraphs[1] ? spanOf(text, paragraphs[1].startChar, Math.min(paragraphs[1].endChar, paragraphs[1].startChar + 90)) : spanOf(text, 0, 0),
     feedbackStarter: "Linking is limited to a narrow set of devices.",
@@ -1199,7 +1191,7 @@ export function gradeTask2(item: Task2Item, rawText: string): Task2Grade {
     cap: 7,
     label: "Referencing used",
     observed: `referencing density ${metrics.referencingDensity}`,
-    reason: referencingWeak ? "Very little referencing (this/it/these/such): cohesion relies on linkers alone." : "Referencing present.",
+    reason: CAP_REASONS["t2.cc.referencing"](),
     severity: "upgrade",
     evidence: paragraphs[1] ? spanOf(text, paragraphs[1].startChar, Math.min(paragraphs[1].endChar, paragraphs[1].startChar + 90)) : spanOf(text, 0, 0),
     feedbackStarter: "The essay makes little use of referencing words (this, it, these, such).",
@@ -1217,10 +1209,7 @@ export function gradeTask2(item: Task2Item, rawText: string): Task2Grade {
     cap: bannedHeavy ? 5 : 6,
     label: "No memorised / banned phrases",
     observed: `${banned.length} banned phrase(s)`,
-    reason:
-      banned.length === 0
-        ? "No banned phrases."
-        : `${banned.length} memorised phrase(s) detected (${banned.map((hit) => `#${hit.ruleIndex}`).join(", ")}): LR capped at ${bannedHeavy ? 5 : 6}.`,
+    reason: CAP_REASONS["t2.lr.banned"]({ count: banned.length }),
     severity: "cap",
     evidence: firstBanned
       ? { startChar: firstBanned.startChar, endChar: firstBanned.endChar, text: firstBanned.match }
@@ -1238,9 +1227,7 @@ export function gradeTask2(item: Task2Item, rawText: string): Task2Grade {
       cap: 5,
       label: "No memorised thesis",
       observed: thesisBan ? `banned phrase #${thesisBan.ruleIndex}` : "no thesis announcement",
-      reason: thesisBan
-        ? "A memorised thesis announcement (`this essay will…`) replaces a real position: TR capped at 5."
-        : "No memorised thesis announcement.",
+      reason: CAP_REASONS["t2.tr.memorised-thesis"](),
       severity: "cap",
       evidence: thesisBan ? { startChar: thesisBan.startChar, endChar: thesisBan.endChar, text: thesisBan.match } : spanOf(text, 0, 0),
       feedbackStarter: thesisBan
@@ -1272,7 +1259,7 @@ export function gradeTask2(item: Task2Item, rawText: string): Task2Grade {
     cap: 6,
     label: "No contractions",
     observed: `${lexical.contractions.length} contraction(s)`,
-    reason: lexical.contractions.length === 0 ? "No contractions." : "Contractions are informal: LR capped at 6.",
+    reason: CAP_REASONS["t2.lr.contractions"]({ count: lexical.contractions.length }),
     severity: "error",
     evidence: lexical.contractions[0]
       ? { startChar: lexical.contractions[0].startChar, endChar: lexical.contractions[0].endChar, text: lexical.contractions[0].match }
@@ -1289,10 +1276,7 @@ export function gradeTask2(item: Task2Item, rawText: string): Task2Grade {
     cap: uncountableHeavy ? 5 : 6,
     label: "Uncountable nouns used correctly",
     observed: `${lexical.uncountable.length} uncountable slip(s)`,
-    reason:
-      lexical.uncountable.length === 0
-        ? "Uncountables used correctly."
-        : `Uncountable slips (${lexical.uncountable.map((hit) => `"${hit.match}"`).join(", ")}).`,
+    reason: CAP_REASONS["t2.lr.uncountable"]({ count: lexical.uncountable.length }),
     severity: "error",
     evidence: lexical.uncountable[0]
       ? { startChar: lexical.uncountable[0].startChar, endChar: lexical.uncountable[0].endChar, text: lexical.uncountable[0].match }
@@ -1318,10 +1302,7 @@ export function gradeTask2(item: Task2Item, rawText: string): Task2Grade {
     cap: spellingBand,
     label: "Spelling accuracy",
     observed: `${lexical.spelling.length} misspelling(s)`,
-    reason:
-      lexical.spelling.length === 0
-        ? "No flagged misspellings."
-        : `Misspellings: ${lexical.spelling.map((hit) => `"${hit.match}" → "${hit.correction}"`).join(", ")}.`,
+    reason: CAP_REASONS["t2.lr.spelling"]({ count: lexical.spelling.length }),
     severity: spellingErrorCount > 0 ? "error" : "upgrade",
     evidence: firstSpelling
       ? { startChar: firstSpelling.startChar, endChar: firstSpelling.endChar, text: firstSpelling.match }
@@ -1343,7 +1324,7 @@ export function gradeTask2(item: Task2Item, rawText: string): Task2Grade {
     cap: informalHeavy ? 5 : 6,
     label: "Formal register",
     observed: `${informal.length} informal item(s)`,
-    reason: informal.length === 0 ? "Register formal." : `Informal items: ${informal.map((hit) => `"${hit.match}"`).join(", ")}.`,
+    reason: CAP_REASONS["t2.lr.informal"]({ count: informal.length }),
     severity: "error",
     evidence: informal[0]
       ? { startChar: informal[0].startChar, endChar: informal[0].endChar, text: informal[0].match }
@@ -1362,7 +1343,7 @@ export function gradeTask2(item: Task2Item, rawText: string): Task2Grade {
     cap: ttrVeryWeak ? 5 : 6,
     label: "Lexical range",
     observed: `type–token ratio ${metrics.ttr}`,
-    reason: ttrWeak ? `Repetitive vocabulary (TTR ${metrics.ttr}): LR capped at ${ttrVeryWeak ? 5 : 6}.` : "Vocabulary varied.",
+    reason: CAP_REASONS["t2.lr.range"](),
     severity: "error",
     evidence: repeated
       ? spanOf(text, repeated.firstStartChar, repeated.firstEndChar)
@@ -1379,7 +1360,7 @@ export function gradeTask2(item: Task2Item, rawText: string): Task2Grade {
     cap: 6,
     label: "No over-used content word",
     observed: `top content word used ${metrics.topRepeatedCount} time(s)`,
-    reason: repetitionProblem ? "One content word dominates the essay." : "Repetition controlled.",
+    reason: CAP_REASONS["t2.lr.repetition"](),
     severity: "upgrade",
     evidence: repeated ? spanOf(text, repeated.firstStartChar, repeated.firstEndChar) : spanOf(text, 0, 0),
     feedbackStarter: "One content word is repeated throughout the essay.",
@@ -1395,7 +1376,7 @@ export function gradeTask2(item: Task2Item, rawText: string): Task2Grade {
     cap: 6,
     label: "Complex structures used",
     observed: `${(metrics.complexSentencePct * 100).toFixed(0)}% complex sentences`,
-    reason: complexWeak ? "Too few complex sentences: GRA capped at 6." : "Mix of simple and complex structures.",
+    reason: CAP_REASONS["t2.gra.complexity"]({ percent: Math.round(metrics.complexSentencePct * 100) }),
     severity: "error",
     evidence: (() => {
       const simple = splitSentences(text).find(
@@ -1421,7 +1402,10 @@ export function gradeTask2(item: Task2Item, rawText: string): Task2Grade {
     cap: errorDensityBad ? 5 : 6,
     label: "Error-free sentence ratio",
     observed: `${(metrics.errorFreeRatio * 100).toFixed(0)}% error-free (${metrics.grammarErrorCount} hit(s))`,
-    reason: errorFreeWeak ? "Too few error-free sentences: GRA capped." : "Frequent error-free sentences.",
+    reason: CAP_REASONS["t2.gra.errorfree"]({
+      percent: Math.round(metrics.errorFreeRatio * 100),
+      hits: metrics.grammarErrorCount,
+    }),
     severity: "error",
     evidence: firstGrammarHit
       ? { startChar: firstGrammarHit.startChar, endChar: firstGrammarHit.endChar, text: firstGrammarHit.match }
@@ -1442,10 +1426,7 @@ export function gradeTask2(item: Task2Item, rawText: string): Task2Grade {
     cap: punctuationHeavy ? 5 : 6,
     label: "Punctuation control",
     observed: `${metrics.punctuationErrorCount} punctuation/capitalisation issue(s)`,
-    reason:
-      metrics.punctuationErrorCount === 0
-        ? "Punctuation controlled."
-        : `${metrics.punctuationErrorCount} issue(s) (semicolons/colons, contractions, capitalisation): GRA capped.`,
+    reason: CAP_REASONS["t2.gra.punctuation"]({ count: metrics.punctuationErrorCount }),
     severity: "error",
     evidence: firstPunctuation
       ? { startChar: firstPunctuation.startChar, endChar: firstPunctuation.endChar, text: firstPunctuation.match }
@@ -1461,7 +1442,7 @@ export function gradeTask2(item: Task2Item, rawText: string): Task2Grade {
     cap: 6,
     label: "No contractions (grammar)",
     observed: `${lexical.contractions.length} contraction(s)`,
-    reason: lexical.contractions.length < 2 ? "At most one contraction." : "Two or more contractions: GRA capped at 6.",
+    reason: CAP_REASONS["t2.gra.contractions"]({ count: lexical.contractions.length }),
     severity: "error",
     evidence: lexical.contractions[0]
       ? { startChar: lexical.contractions[0].startChar, endChar: lexical.contractions[0].endChar, text: lexical.contractions[0].match }
@@ -1478,7 +1459,7 @@ export function gradeTask2(item: Task2Item, rawText: string): Task2Grade {
     cap: 6,
     label: "Article accuracy",
     observed: `${metrics.articleHits} article error(s)`,
-    reason: articleHeavy ? "Repeated article errors: GRA capped at 6." : "Article use acceptable.",
+    reason: CAP_REASONS["t2.gra.articles"]({ count: metrics.articleHits }),
     severity: "error",
     evidence: (() => {
       const hit = analysis.grammarHits.find((entry) => entry.kind === "article");
@@ -1496,7 +1477,7 @@ export function gradeTask2(item: Task2Item, rawText: string): Task2Grade {
     cap: 6,
     label: "Preposition accuracy",
     observed: `${metrics.prepositionHits} preposition error(s)`,
-    reason: prepositionHeavy ? "Repeated preposition errors: GRA capped at 6." : "Preposition use acceptable.",
+    reason: CAP_REASONS["t2.gra.prepositions"]({ count: metrics.prepositionHits }),
     severity: "error",
     evidence: (() => {
       const hit = analysis.grammarHits.find((entry) => entry.kind === "preposition");

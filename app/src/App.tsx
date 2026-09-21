@@ -105,20 +105,22 @@ class ErrorBoundary extends Component<{ children: ReactNode }, ErrorBoundaryStat
 
   render(): ReactNode {
     if (!this.state.error) return this.props.children;
+    /* Failures stay in the interface, in the interface's voice: what happened and
+       how to recover (feedback.md › Best practices; writing.md). */
     return (
-      <div className="grid min-h-screen place-items-center bg-slate-100 p-4" data-testid="app-crash">
-        <div className="w-full max-w-lg rounded-2xl border border-red-200 bg-white p-6 shadow-lg">
-          <h1 className="text-lg font-semibold text-red-700">Something went wrong</h1>
-          <p className="mt-1 text-sm text-slate-600">
+      <div className="grid min-h-screen place-items-center bg-surface p-4" data-testid="app-crash">
+        <div className="w-full max-w-lg rounded-card border border-line bg-content p-6 shadow-card">
+          <h1 className="text-headline font-semibold text-danger">Something went wrong</h1>
+          <p className="mt-1 text-subhead text-ink-2">
             The screen crashed unexpectedly. Resetting clears the saved session and returns to setup.
           </p>
-          <pre className="mt-3 max-h-40 overflow-auto rounded-lg bg-red-50 p-3 text-xs leading-5 text-red-800">
+          <pre className="mt-3 max-h-40 overflow-auto rounded-control bg-danger-soft p-3 text-caption leading-5 text-danger">
             {this.state.error.message}
           </pre>
           <button
             type="button"
             onClick={this.handleReset}
-            className="mt-4 rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-slate-700"
+            className="mt-4 min-h-[44px] rounded-full bg-tint-fill px-5 text-subhead font-semibold text-white transition-colors ease-apple hover:bg-tint-strong focus-visible:outline-tint"
           >
             Reset and reload
           </button>
@@ -177,9 +179,9 @@ function GradedReport() {
 
 function LoadingScreen() {
   return (
-    <div className="grid min-h-screen place-items-center bg-slate-100" data-testid="bank-loading">
-      <div className="flex items-center gap-3 text-sm text-slate-500">
-        <span className="h-4 w-4 animate-spin rounded-full border-2 border-slate-300 border-t-slate-700" />
+    <div className="grid min-h-screen place-items-center bg-surface" data-testid="bank-loading">
+      <div className="flex items-center gap-3 text-subhead text-ink-2">
+        <span className="h-4 w-4 animate-spin rounded-full border-2 border-line border-t-ink" />
         Loading question bank…
       </div>
     </div>
@@ -196,12 +198,12 @@ function BankErrorScreen({
   onRetry: () => void;
 }) {
   return (
-    <div className="grid min-h-screen place-items-center bg-slate-100 p-4" data-testid="bank-error">
-      <div className="w-full max-w-lg rounded-2xl border border-red-200 bg-white p-6 shadow-lg">
-        <h1 className="text-lg font-semibold text-red-700">Question bank unavailable</h1>
-        <p className="mt-1 text-sm text-slate-600">{message}</p>
+    <div className="grid min-h-screen place-items-center bg-surface p-4" data-testid="bank-error">
+      <div className="w-full max-w-lg rounded-card border border-line bg-content p-6 shadow-card">
+        <h1 className="text-headline font-semibold text-danger">Question bank unavailable</h1>
+        <p className="mt-1 text-subhead text-ink-2">{message}</p>
         {details.length > 0 && (
-          <ul className="mt-3 max-h-56 list-disc space-y-1 overflow-y-auto rounded-lg bg-red-50 p-3 pl-7 text-xs leading-5 text-red-800">
+          <ul className="mt-3 max-h-56 list-disc space-y-1 overflow-y-auto rounded-control bg-danger-soft p-3 pl-7 text-caption leading-5 text-danger">
             {details.map((detail) => (
               <li key={detail}>{detail}</li>
             ))}
@@ -210,7 +212,7 @@ function BankErrorScreen({
         <button
           type="button"
           onClick={onRetry}
-          className="mt-4 rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-slate-700"
+          className="mt-4 min-h-[44px] rounded-full bg-tint-fill px-5 text-subhead font-semibold text-white transition-colors ease-apple hover:bg-tint-strong focus-visible:outline-tint"
         >
           Retry
         </button>

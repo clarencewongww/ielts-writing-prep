@@ -134,6 +134,120 @@ function shortFeatureList(item: Task1Item, limit = 3): string {
 }
 
 /* ------------------------------------------------------------------ */
+/* Plain-language score-limit reasons                                  */
+/* ------------------------------------------------------------------ */
+
+export type CapReasonVars = Record<string, string | number>;
+
+/**
+ * Every score limit has a plain-language reason, keyed by the check that fired.
+ * The report renders these under "Score limits" instead of raw check ids
+ * (HIG writing: say what happens, no jargon), so each one names the problem and
+ * the concrete fix. Task 2 shares this table; dynamic counts arrive as vars.
+ */
+export const CAP_REASONS: Record<string, (vars?: CapReasonVars) => string> = {
+  /* Task 1 — Task Achievement */
+  "t1.ta.underlength": ({ netWords = 0, min = 150 } = {}) =>
+    `Only ${netWords} words after copied question text is removed (minimum ${min}) — too short to develop the task. Add the missing key features to the overview and one extra figure per body sentence.`,
+  "t1.ta.overview.missing": () =>
+    `No overview found — the main trends are never gathered in one place. Add a paragraph starting "Overall," that names the highest/lowest and the biggest change.`,
+  "t1.ta.overview.vague": ({ coverage = 0, minFeatures = 2 } = {}) =>
+    `The overview is attempted but vague — it names ${coverage} of the ${minFeatures} key features needed. Name the highest/lowest and the biggest change.`,
+  "t1.ta.overview.split": () =>
+    `Key features are spread across body paragraphs instead of one overview. Collect every high/low/biggest-change statement into the "Overall," paragraph.`,
+  "t1.ta.opinion": ({ match = "" } = {}) =>
+    `Opinion language detected ("${match}") — Task 1 only reports the data. Replace it with neutral description such as "the highest figure" or "the sharpest rise".`,
+  "t1.ta.conclusion": ({ linker = "" } = {}) =>
+    `A conclusion was added ("${linker}") — Task 1 needs an overview, not a conclusion, and the closing paragraph repeats material. Delete it and fold any new key feature into the overview.`,
+  "t1.ta.data": ({ missing = 0, total = 0 } = {}) =>
+    `${missing} of ${total} body sentences carry no figure or date — the description is not supported by data. Add the exact figure or year to each body sentence.`,
+
+  /* Task 1 — Coherence & Cohesion */
+  "t1.cc.paragraphs": ({ paragraphs = 0 } = {}) =>
+    `Only ${paragraphs} paragraph(s) — Task 1 needs an introduction, an overview and two body paragraphs. Split the text with blank lines into that shape.`,
+  "t1.cc.bodies": ({ bodies = 0 } = {}) =>
+    `Only ${bodies} body paragraph(s) — Task 1 needs two so the detail has a logical second group. Split the detail into two bodies.`,
+  "t1.cc.mechanical": () =>
+    `Paragraphs open with "Firstly / Secondly", which reads as mechanical. Replace those openers with content-based links ("In contrast," / "By 2020,") or start directly with the data.`,
+  "t1.cc.initialRatio": ({ initial = 0, total = 0 } = {}) =>
+    `${initial} of ${total} sentences begin with a linker — the cohesion is over-signposted. Let data sentences start with the subject and keep linkers for genuine contrasts.`,
+
+  /* Task 2 — Task Response */
+  "t2.words.min": ({ words = 0, min = 250 } = {}) =>
+    `Only ${words} words — below the ${min}-word minimum, so ideas cannot be developed in full. Develop one more supporting point (reason → consequence → example) instead of padding.`,
+  "t2.words.ceiling": ({ words = 0, ceiling = 300 } = {}) =>
+    `${words} words — above the ${ceiling}-word ceiling, where extra length usually adds unfocused ideas and errors. Cut any sentence that neither supports your position nor answers a question part.`,
+  "t2.structure.conclusion": () =>
+    `No conclusion found — the essay stops after the last body paragraph. Add a one- or two-sentence conclusion starting "In conclusion," that restates your position.`,
+  "t2.tr.position.missing": () =>
+    `The task asks for your opinion, but no explicit position appears anywhere. State it in the introduction ("In my opinion…", "I largely agree…") and hold it through the essay.`,
+  "t2.tr.position.late": () =>
+    `Your position only appears in the conclusion. Move the thesis into the introduction and answer the question directly there.`,
+  "t2.tr.position.fence": () =>
+    `You agree with both sides equally, which is fence-sitting. Commit to a side — a partial view such as "I largely agree because…" is fine.`,
+  "t2.tr.position.forced": () =>
+    `This task does not ask for your opinion, but the essay takes a personal stance. Keep the response neutral and reframe first-person opinions as evidence.`,
+  "t2.tr.position.consistency": () =>
+    `The stance changes between the introduction and the conclusion, so one position is not held throughout. Pick one side and restate it in the conclusion in new words.`,
+  "t2.tr.half-answer": ({ missing = "" } = {}) =>
+    `Parts of the task are unanswered${missing ? `: ${missing}` : ""} — a half-answered question cannot exceed band 5. Give every question part its own paragraph and mirror the question wording in the topic sentence.`,
+  "t2.tr.weighing": () =>
+    `The task asks which side outweighs the other, but the verdict is asserted without any weighing. Compare the two sides explicitly: "The benefits matter more because…".`,
+  "t2.tr.development": () =>
+    `At least one body paragraph states an idea without extending it. Develop it: reason → consequence → example, then tie it back to the question.`,
+  "t2.tr.focus": () =>
+    `Very little of the question's key vocabulary appears, so the essay may answer the general topic instead. Paraphrase the statement in the introduction and keep its key terms throughout.`,
+  "t2.tr.memorised-thesis": () =>
+    `The thesis is a memorised announcement such as "this essay will…" rather than a direct answer. Delete it and answer the question in your own words.`,
+
+  /* Task 2 — Coherence & Cohesion */
+  "t2.structure.paragraphs": ({ paragraphs = 0 } = {}) =>
+    `${paragraphs} paragraph(s) — Task 2 expects four or five (introduction, two or three bodies and a conclusion). Restructure into that skeleton before adding more content.`,
+  "t2.structure.bodies": ({ bodies = 0 } = {}) =>
+    `${bodies} body paragraph(s) — two or three are required so each idea gets room. Give each body its own topic sentence instead of stacking ideas in one block.`,
+  "t2.structure.conclusion-link": () =>
+    `The final paragraph is not signposted as a conclusion. Start it with "In conclusion," — "To sum up" is acceptable but weaker.`,
+  "t2.cc.topics": () =>
+    `A body paragraph has no clear topic sentence or mixes several ideas. Open each body with one sentence naming the single idea it will develop.`,
+  "t2.cc.mechanical": () =>
+    `Paragraph openers rely on "Firstly / Secondly", which examiners read as mechanical. Replace them with content-based signposts ("The main reason…", "A stronger objection…").`,
+  "t2.cc.linkers": () =>
+    `Linking is limited to a narrow set of devices. Add contrast ("however"), result ("consequently") and example ("for instance") linkers where the logic calls for them.`,
+  "t2.cc.referencing": () =>
+    `The essay makes little use of referencing words such as "this", "it" and "these". Use "this / these + noun" to pick up the previous idea instead of repeating linkers.`,
+
+  /* Task 2 — Lexical Resource */
+  "t2.lr.banned": ({ count = 0 } = {}) =>
+    `${count} memorised phrase(s) detected — examiners discount scripted language, and it damages both Task Response and vocabulary. Replace them with your own wording.`,
+  "t2.lr.contractions": ({ count = 0 } = {}) =>
+    `${count} contraction(s) found — contractions are informal in an essay. Write the two-word form ("do not", "it is").`,
+  "t2.lr.uncountable": ({ count = 0 } = {}) =>
+    `${count} uncountable-noun slip(s) — words like "advice", "information" and "research" take no plural or article. Remove the article or plural, or quantify with "a piece of …".`,
+  "t2.lr.spelling": ({ count = 0 } = {}) =>
+    `${count} misspelling(s) — spelling errors count under Lexical Resource. Proof-read key topic terms last.`,
+  "t2.lr.informal": ({ count = 0 } = {}) =>
+    `${count} informal item(s) detected — essays need an academic register. Swap them for formal equivalents.`,
+  "t2.lr.range": () =>
+    `Vocabulary repeats itself, which holds Lexical Resource down. Paraphrase the most repeated content word with a precise synonym from the topic's language bank.`,
+  "t2.lr.repetition": () =>
+    `One content word dominates the essay. Build a synonym set for the key term before writing and rotate the terms.`,
+
+  /* Task 2 — Grammatical Range & Accuracy */
+  "t2.gra.complexity": ({ percent = 0 } = {}) =>
+    `Only ${percent}% of sentences are complex, so grammatical range is limited. Combine two short sentences with a joining word ("although", "while", "which") in each body paragraph.`,
+  "t2.gra.errorfree": ({ percent = 0, hits = 0 } = {}) =>
+    `Only ${percent}% of sentences are error-free (${hits} grammar slip(s)). Check subject–verb agreement and articles in each body paragraph.`,
+  "t2.gra.punctuation": ({ count = 0 } = {}) =>
+    `${count} punctuation or capitalisation issue(s) — prefer commas and full stops, and avoid semicolons and colons.`,
+  "t2.gra.contractions": ({ count = 0 } = {}) =>
+    `${count} contraction(s) — expand each one ("don't" → "do not"); contractions count against grammatical control.`,
+  "t2.gra.articles": ({ count = 0 } = {}) =>
+    `${count} article error(s) — check "a/an" before vowel sounds and drop articles before uncountable nouns.`,
+  "t2.gra.prepositions": ({ count = 0 } = {}) =>
+    `${count} preposition error(s) — learn the fixed phrases: "discuss Ø", "depend on", "focus on".`,
+};
+
+/* ------------------------------------------------------------------ */
 /* Individual caps                                                     */
 /* ------------------------------------------------------------------ */
 
@@ -145,7 +259,7 @@ function evaluateUnderlength(input: Task1CapInput): CapEvaluation {
         criterion: "TA",
         cap: 5,
         checkId: "t1.ta.underlength",
-        reason: `Fewer than ${min} words after copied question text is removed.`,
+        reason: CAP_REASONS["t1.ta.underlength"]({ netWords: input.netWords, min }),
         evidence: wholeSpan(input.text),
       }
     : null;
@@ -192,7 +306,7 @@ function evaluateOverview(input: Task1CapInput): CapEvaluation[] {
             criterion: "TA",
             cap: 5,
             checkId: "t1.ta.overview.missing",
-            reason: "No overview paragraph was found.",
+            reason: CAP_REASONS["t1.ta.overview.missing"](),
             evidence: paragraphSpan(input.paragraphs[0] ?? null, text),
           }
         : null,
@@ -239,7 +353,7 @@ function evaluateOverview(input: Task1CapInput): CapEvaluation[] {
             criterion: "TA",
             cap: 6,
             checkId: "t1.ta.overview.vague",
-            reason: `The overview names ${overview.coverage} key feature(s); a clear overview needs at least ${minFeatures}.`,
+            reason: CAP_REASONS["t1.ta.overview.vague"]({ coverage: overview.coverage, minFeatures }),
             evidence: spanOf(text, overview.start, overview.end),
           }
         : null,
@@ -293,7 +407,7 @@ function evaluateOverview(input: Task1CapInput): CapEvaluation[] {
         (overview.detectedBy === "paragraph2" &&
           overview.coverage < minFeatures &&
           bodyFeatureParagraphs.size >= 2));
-    const reason = overview.markerParagraphs.length >= 2
+    const observedDetail = overview.markerParagraphs.length >= 2
       ? `Overview openers appear in paragraphs ${overview.markerParagraphs.map((i) => i + 1).join(" and ")}.`
       : "Key features are first named in separate body paragraphs instead of one overview.";
     evaluations.push({
@@ -302,7 +416,7 @@ function evaluateOverview(input: Task1CapInput): CapEvaluation[] {
             criterion: "TA",
             cap: 6,
             checkId: "t1.ta.overview.split",
-            reason,
+            reason: CAP_REASONS["t1.ta.overview.split"](),
             evidence: spanOf(text, overview.start, overview.end),
           }
         : null,
@@ -312,7 +426,7 @@ function evaluateOverview(input: Task1CapInput): CapEvaluation[] {
         task: 1,
         passed: !fired,
         observed: fired
-          ? reason
+          ? observedDetail
           : "Key features are collected in a single overview.",
         cap: "TA",
         severity: "cap",
@@ -356,7 +470,7 @@ function evaluateParagraphing(input: Task1CapInput): CapEvaluation[] {
             criterion: "CC",
             cap: 5,
             checkId: "t1.cc.paragraphs",
-            reason: `Only ${shape.paragraphCount} paragraph(s); Task 1 needs introduction + overview + 2 bodies.`,
+            reason: CAP_REASONS["t1.cc.paragraphs"]({ paragraphs: shape.paragraphCount }),
             evidence: wholeSpan(input.text),
           }
         : null,
@@ -398,7 +512,7 @@ function evaluateParagraphing(input: Task1CapInput): CapEvaluation[] {
             criterion: "CC",
             cap: 5,
             checkId: "t1.cc.bodies",
-            reason: `Only ${shape.bodies.length} body paragraph(s); Task 1 needs two (never one).`,
+            reason: CAP_REASONS["t1.cc.bodies"]({ bodies: shape.bodies.length }),
             evidence: paragraphSpan(shape.bodies[0] ?? null, input.text),
           }
         : null,
@@ -444,7 +558,7 @@ function evaluateParagraphing(input: Task1CapInput): CapEvaluation[] {
             criterion: "CC",
             cap: 6,
             checkId: "t1.cc.mechanical",
-            reason: mechanical.note,
+            reason: CAP_REASONS["t1.cc.mechanical"](),
             evidence: mechanical.evidence[0]
               ? spanOf(input.text, mechanical.evidence[0].start, mechanical.evidence[0].end)
               : wholeSpan(input.text),
@@ -493,7 +607,7 @@ function evaluateParagraphing(input: Task1CapInput): CapEvaluation[] {
             criterion: "CC",
             cap: 6,
             checkId: "t1.cc.initialRatio",
-            reason: `${initial} of ${total} sentences begin with a linker (${Math.round(ratio * 100)}%).`,
+            reason: CAP_REASONS["t1.cc.initialRatio"]({ initial, total }),
             evidence: wholeSpan(input.text),
           }
         : null,
@@ -542,7 +656,7 @@ function evaluateFormat(input: Task1CapInput): CapEvaluation[] {
             criterion: "TA",
             cap: 6,
             checkId: "t1.ta.opinion",
-            reason: `Opinion language detected: "${hit!.match}".`,
+            reason: CAP_REASONS["t1.ta.opinion"]({ match: hit!.match }),
             evidence: hit ? spanOf(input.text, hit.start, hit.end) : wholeSpan(input.text),
           }
         : null,
@@ -585,7 +699,7 @@ function evaluateFormat(input: Task1CapInput): CapEvaluation[] {
             criterion: "TA",
             cap: 6,
             checkId: "t1.ta.conclusion",
-            reason: `Conclusion opener detected: "${hit!.linker}".`,
+            reason: CAP_REASONS["t1.ta.conclusion"]({ linker: hit!.linker }),
             evidence: hit ? spanOf(input.text, hit.start, hit.end) : wholeSpan(input.text),
           }
         : null,
@@ -640,7 +754,7 @@ function evaluateDataSupport(input: Task1CapInput): CapEvaluation {
         criterion: "TA",
         cap: 5,
         checkId: "t1.ta.data",
-        reason: `${data.total - data.withData} of ${data.total} body sentences carry no figure or date.`,
+        reason: CAP_REASONS["t1.ta.data"]({ missing: data.total - data.withData, total: data.total }),
         evidence: firstDataFree
           ? spanOf(input.text, firstDataFree.span.start, firstDataFree.span.end)
           : wholeSpan(input.text),

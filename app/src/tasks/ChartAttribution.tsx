@@ -25,7 +25,7 @@ export interface ChartAttributionProps {
 export function ChartAttribution({ detail, policy, verbose = false, className }: ChartAttributionProps) {
   return (
     <p
-      className={cx('mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-slate-500', className)}
+      className={cx('mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-caption text-ink-2', className)}
       data-attribution="true"
       title={policy ? `App policy: ${policy}` : undefined}
     >
@@ -34,7 +34,7 @@ export function ChartAttribution({ detail, policy, verbose = false, className }:
         <span>{ATTRIBUTION_TEXT}</span>
       </span>
       {verbose ? <span>Redrawn from reported exam tasks; no source image is embedded.</span> : null}
-      {detail ? <span className="text-slate-500">{detail}</span> : null}
+      {detail ? <span className="text-ink-2">{detail}</span> : null}
     </p>
   );
 }

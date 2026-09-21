@@ -24,22 +24,28 @@ import {
 } from 'chart.js';
 import { useEffect, useRef, useState, type DependencyList } from 'react';
 
-/** Series colour cycle, applied by index so any number of series renders. */
+/** Series colour cycle, applied by index so any number of series renders.
+ *
+ *  Apple system colours, ordered for maximum separation, using the
+ *  higher-contrast variants where the default is too light to hold 3:1 against
+ *  the paper surface (charts.md › Color: don't rely on colour alone — the
+ *  legend, axis labels and the fallback table carry the same information). */
 export const CHART_COLORS = [
-  '#0f766e',
-  '#b45309',
-  '#1d4ed8',
-  '#be123c',
-  '#4d7c0f',
-  '#7e22ce',
-  '#0369a1',
-  '#a16207',
-  '#155e75',
-  '#9f1239',
+  '#0071E3', // blue (the app accent)
+  '#C93400', // orange (accessible)
+  '#248A3D', // green (accessible)
+  '#AF52DE', // purple
+  '#FF2D55', // pink
+  '#008299', // teal (accessible)
+  '#5856D6', // indigo
+  '#A2845E', // brown
+  '#FF3B30', // red
+  '#0071A4', // cyan (accessible)
 ] as const;
 
-export const CHART_GRID = 'rgba(15, 23, 42, 0.08)';
-export const CHART_TICK = '#475569';
+/** Grid + tick tones from the neutral tokens (5.07:1 for tick labels on paper). */
+export const CHART_GRID = 'rgba(29, 29, 31, 0.08)';
+export const CHART_TICK = '#6E6E73';
 
 let registered = false;
 

@@ -28,7 +28,7 @@ export function TaskPanel({ task }: TaskPanelProps) {
   if (!item) {
     return (
       <section className="pt-6" data-testid="task-missing">
-        <div className="rounded-2xl border border-amber-200 bg-amber-50 p-6 text-sm text-amber-900">
+        <div className="rounded-card bg-warn-soft p-6 text-subhead text-warn">
           No prompt is selected for Task {task} yet —{" "}
           <button type="button" onClick={actions.reset} className="font-semibold underline underline-offset-2">
             head back to setup
@@ -61,12 +61,14 @@ export function TaskPanel({ task }: TaskPanelProps) {
         {session.uiRules.planningNotesArea && <PlanningNotes />}
       </div>
 
-      <div className="flex min-h-[540px] flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm lg:max-h-[calc(100vh-8.5rem)]">
-        <div className="flex items-center justify-between gap-3 border-b border-slate-200 px-4 py-2.5">
-          <h2 className="text-sm font-semibold text-slate-700">
+      {/* Opaque content card: the editor never uses the glass material
+          (materials.md › Liquid Glass: glass belongs to the functional layer). */}
+      <div className="flex min-h-[540px] flex-col overflow-hidden rounded-card border border-line bg-content shadow-card lg:max-h-[calc(100vh-8.5rem)]">
+        <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 border-b border-line-soft px-4 py-2.5">
+          <h2 className="text-headline font-semibold text-ink">
             Your answer — Task {task}
           </h2>
-          <span className="text-xs text-slate-500">suggested {recommendedMinutes} min · take your time</span>
+          <span className="text-caption text-ink-2">suggested {recommendedMinutes} min · take your time</span>
         </div>
 
         <AnswerBox
@@ -81,7 +83,7 @@ export function TaskPanel({ task }: TaskPanelProps) {
           }
         />
 
-        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 bg-slate-50 px-4 py-3">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-line-soft bg-ink/[0.03] px-4 py-3">
           <WordCounter task={task} text={draft} />
           <SubmitControl task={task} />
         </div>
@@ -101,7 +103,7 @@ function SubmitControl({ task }: { task: TaskNumber }) {
     return (
       <span
         data-testid={`task-submitted-${task}`}
-        className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700"
+        className="inline-flex min-h-[36px] items-center gap-1.5 rounded-full bg-ok-soft px-3.5 text-caption font-semibold text-ok"
       >
         <CheckIcon />
         Submitted · {submission.words} words · {formatClock(submission.submittedAt)}
@@ -112,20 +114,21 @@ function SubmitControl({ task }: { task: TaskNumber }) {
   if (armed) {
     return (
       <span className="flex items-center gap-2">
+        {/* Handing in the task ends editing for it — destructive role, red fill. */}
         <button
           type="button"
           onClick={() => {
             actions.submitTask(task);
             setArmed(false);
           }}
-          className="rounded-lg bg-red-600 px-3.5 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-red-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600"
+          className="min-h-[44px] whitespace-nowrap rounded-full bg-danger-fill px-4 text-subhead font-semibold text-white shadow-sm transition-colors ease-apple hover:opacity-90 focus-visible:outline-danger"
         >
           Confirm submit Task {task}
         </button>
         <button
           type="button"
           onClick={() => setArmed(false)}
-          className="rounded-lg px-2.5 py-2 text-sm font-medium text-slate-600 hover:bg-slate-200/70"
+          className="min-h-[44px] rounded-full px-3 text-subhead font-medium text-ink-2 transition-colors ease-apple hover:bg-ink/5 hover:text-ink focus-visible:outline-tint"
         >
           Keep writing
         </button>
@@ -140,7 +143,7 @@ function SubmitControl({ task }: { task: TaskNumber }) {
       onClick={() => setArmed(true)}
       disabled={draft.trim().length === 0 && !timer.locked}
       title={draft.trim().length === 0 ? "Even one sentence unlocks submit" : undefined}
-      className="rounded-lg bg-slate-900 px-3.5 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-slate-700 disabled:cursor-not-allowed disabled:bg-slate-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900"
+      className="min-h-[44px] whitespace-nowrap rounded-full bg-tint-fill px-4 text-subhead font-semibold text-white shadow-sm transition-colors ease-apple hover:bg-tint-strong focus-visible:outline-tint disabled:cursor-not-allowed disabled:bg-ink/10 disabled:text-ink-3 disabled:shadow-none"
     >
       Submit Task {task}
     </button>

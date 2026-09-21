@@ -109,12 +109,12 @@ export function TaskPicker({
   };
 
   const selectClassName =
-    'rounded-md border border-slate-300 bg-white px-2 py-1 text-xs text-slate-700 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500';
+    'max-w-full rounded-control border border-line bg-content px-2.5 py-1.5 text-caption text-ink shadow-sm focus-visible:border-tint focus-visible:outline-tint';
 
   return (
-    <section className={cx('w-full rounded-lg border border-slate-200 bg-white', className)} data-task-picker="true">
-      <div className="flex flex-wrap items-center gap-2 border-b border-slate-200 p-3">
-        <div className="flex rounded-md bg-slate-100 p-0.5" role="tablist" aria-label="Task">
+    <section className={cx('w-full rounded-card border border-line bg-content', className)} data-task-picker="true">
+      <div className="flex flex-wrap items-center gap-2 border-b border-line p-3">
+        <div className="flex rounded-full bg-ink/[0.04] p-0.5" role="tablist" aria-label="Task">
           {(['task1', 'task2'] as TaskPickerTab[]).map((value) => (
             <button
               key={value}
@@ -123,8 +123,8 @@ export function TaskPicker({
               aria-selected={tab === value}
               onClick={() => setTab(value)}
               className={cx(
-                'rounded px-3 py-1 text-xs font-semibold transition',
-                tab === value ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700',
+                'rounded-full px-3 py-1 text-caption font-semibold transition-colors ease-apple focus-visible:outline-tint',
+                tab === value ? 'bg-tint-fill text-white' : 'text-ink-2 hover:text-ink',
               )}
             >
               {value === 'task1' ? `Task 1 (${task1.length})` : `Task 2 (${task2.length})`}
@@ -140,26 +140,26 @@ export function TaskPicker({
           onChange={(event) => setQuery(event.target.value)}
           placeholder="Search id, topic, wording…"
           aria-label="Search tasks"
-          className={cx(selectClassName, 'min-w-40 flex-1')}
+          className={cx(selectClassName, 'w-full min-w-0 flex-1 sm:w-auto sm:min-w-40')}
         />
 
         <button
           type="button"
           onClick={pickRandom}
           disabled={activeList.length === 0}
-          className="rounded-md bg-teal-700 px-3 py-1 text-xs font-semibold text-white shadow-sm transition hover:bg-teal-800 disabled:cursor-not-allowed disabled:bg-slate-300"
+          className="min-h-[32px] rounded-full bg-tint-fill px-3.5 text-caption font-semibold text-white shadow-sm transition-colors ease-apple hover:bg-tint-strong focus-visible:outline-tint disabled:cursor-not-allowed disabled:bg-ink/10 disabled:text-ink-3"
         >
           Random pick
         </button>
-        <span className="text-[11px] text-slate-400">
+        <span className="text-caption text-ink-2">
           {activeList.length} of {totalForTab} shown
         </span>
       </div>
 
-      <div className="flex flex-wrap items-center gap-2 border-b border-slate-100 bg-slate-50/60 p-3">
+      <div className="flex flex-wrap items-center gap-2 border-b border-line-soft bg-surface p-3">
         {tab === 'task1' ? (
           <>
-            <label className="text-[11px] font-medium uppercase tracking-wide text-slate-500" htmlFor="picker-type">
+            <label className="shrink-0 text-caption font-medium uppercase tracking-wide text-ink-2" htmlFor="picker-type">
               Type
             </label>
             <select
@@ -178,7 +178,7 @@ export function TaskPicker({
           </>
         ) : (
           <>
-            <label className="text-[11px] font-medium uppercase tracking-wide text-slate-500" htmlFor="picker-family">
+            <label className="shrink-0 text-caption font-medium uppercase tracking-wide text-ink-2" htmlFor="picker-family">
               Family
             </label>
             <select
@@ -195,7 +195,7 @@ export function TaskPicker({
               ))}
             </select>
 
-            <label className="text-[11px] font-medium uppercase tracking-wide text-slate-500" htmlFor="picker-variant">
+            <label className="shrink-0 text-caption font-medium uppercase tracking-wide text-ink-2" htmlFor="picker-variant">
               Variant
             </label>
             <select
@@ -212,7 +212,7 @@ export function TaskPicker({
               ))}
             </select>
 
-            <label className="text-[11px] font-medium uppercase tracking-wide text-slate-500" htmlFor="picker-topic">
+            <label className="shrink-0 text-caption font-medium uppercase tracking-wide text-ink-2" htmlFor="picker-topic">
               Topic
             </label>
             <select
@@ -241,7 +241,7 @@ export function TaskPicker({
               setTopicFilter(ALL);
               setQuery('');
             }}
-            className="ml-auto text-[11px] font-medium text-teal-700 underline-offset-2 hover:underline"
+            className="ml-auto text-caption font-medium text-tint underline-offset-2 hover:underline focus-visible:outline-tint"
           >
             Clear filters
           </button>
@@ -262,19 +262,19 @@ export function TaskPicker({
                         type="button"
                         onClick={() => onSelectTask1?.(item)}
                         className={cx(
-                          'w-full rounded-md border p-2 text-left transition',
+                          'w-full rounded-control border p-2.5 text-left transition-colors ease-apple focus-visible:outline-tint',
                           selected
-                            ? 'border-teal-500 bg-teal-50/70'
-                            : 'border-slate-200 bg-white hover:border-teal-300 hover:bg-slate-50',
+                            ? 'border-tint bg-tint-soft'
+                            : 'border-line bg-content hover:border-tint/40 hover:bg-surface',
                         )}
                       >
                         <span className="flex flex-wrap items-center gap-2">
-                          <span className="font-mono text-[11px] text-slate-400">{item.specId}</span>
+                          <span className="font-mono text-caption text-ink-2">{item.specId}</span>
                           <Badge tone="teal">{humanizeToken(item.type)}</Badge>
                           <Badge tone="slate">{pluralize(item.keyFeatures?.length ?? 0, 'key feature')}</Badge>
                         </span>
-                        <span className="mt-1 block text-sm font-medium text-slate-800">{item.topic}</span>
-                        <span className="mt-0.5 line-clamp-2 block text-xs text-slate-500">{item.statement}</span>
+                        <span className="mt-1 block text-subhead font-medium text-ink">{item.topic}</span>
+                        <span className="mt-0.5 line-clamp-2 block text-caption text-ink-2">{item.statement}</span>
                       </button>
                     </li>
                   );
@@ -287,28 +287,28 @@ export function TaskPicker({
                         type="button"
                         onClick={() => onSelectTask2?.(prompt)}
                         className={cx(
-                          'w-full rounded-md border p-2 text-left transition',
+                          'w-full rounded-control border p-2.5 text-left transition-colors ease-apple focus-visible:outline-tint',
                           selected
-                            ? 'border-teal-500 bg-teal-50/70'
-                            : 'border-slate-200 bg-white hover:border-teal-300 hover:bg-slate-50',
+                            ? 'border-tint bg-tint-soft'
+                            : 'border-line bg-content hover:border-tint/40 hover:bg-surface',
                         )}
                       >
                         <span className="flex flex-wrap items-center gap-2">
-                          <span className="font-mono text-[11px] text-slate-400">{prompt.promptId}</span>
+                          <span className="font-mono text-caption text-ink-2">{prompt.promptId}</span>
                           <Badge tone="indigo">{humanizeToken(prompt.family)}</Badge>
                           <Badge tone="slate">{prompt.variant}</Badge>
-                          <Badge tone={prompt.opinionRequired ? 'rose' : 'emerald'}>
+                          <Badge tone={prompt.opinionRequired ? 'amber' : 'slate'}>
                             {prompt.opinionRequired ? 'opinion' : 'no position'}
                           </Badge>
                           {typeof prompt.questionCount === 'number' ? (
-                            <Badge tone="amber">{pluralize(prompt.questionCount, 'question')}</Badge>
+                            <Badge tone="slate">{pluralize(prompt.questionCount, 'question')}</Badge>
                           ) : null}
                           {formatWordTarget(prompt.wordTarget) ? (
                             <Badge tone="slate">{formatWordTarget(prompt.wordTarget)}</Badge>
                           ) : null}
                         </span>
-                        <span className="mt-1 block text-sm font-medium text-slate-800">{prompt.topic}</span>
-                        <span className="mt-0.5 line-clamp-2 block text-xs text-slate-500">{prompt.statement}</span>
+                        <span className="mt-1 block text-subhead font-medium text-ink">{prompt.topic}</span>
+                        <span className="mt-0.5 line-clamp-2 block text-caption text-ink-2">{prompt.statement}</span>
                       </button>
                     </li>
                   );

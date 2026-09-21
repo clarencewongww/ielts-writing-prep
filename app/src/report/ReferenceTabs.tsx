@@ -35,8 +35,8 @@ export function ReferenceTabs({ item, submission, submissionLabel = "Your answer
 
   if (!item) {
     return (
-      <section className={cx("rounded-2xl border border-dashed border-slate-300 bg-white p-4", className)} data-testid="reference-tabs-empty">
-        <p className="text-sm text-slate-500">No model answers for this task yet.</p>
+      <section className={cx("rounded-card border border-dashed border-line bg-content p-4", className)} data-testid="reference-tabs-empty">
+        <p className="text-subhead text-ink-2">No model answers for this task yet.</p>
       </section>
     );
   }
@@ -49,20 +49,23 @@ export function ReferenceTabs({ item, submission, submissionLabel = "Your answer
     <section
       data-testid="reference-tabs"
       data-task={task2 ? 2 : 1}
-      className={cx("rounded-2xl border border-slate-200 bg-white p-4 shadow-sm shadow-slate-200/50", className)}
+      className={cx("rounded-card border border-line bg-content p-4 shadow-card", className)}
     >
       <header className="flex flex-wrap items-center justify-between gap-2">
         <div>
-          <h3 className="text-sm font-semibold text-slate-800">Model answers</h3>
-          <p className="text-[11px] text-slate-500">
+          <h3 className="text-headline font-semibold text-ink">Model answers</h3>
+          <p className="text-caption text-ink-2">
             {task2 ? item.statement : `${item.type.toUpperCase()} chart — ${item.statement}`}
           </p>
         </div>
-        <span className="rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[10px] font-medium text-amber-900">
+        <span className="rounded-full bg-tint-soft px-2.5 py-1 text-caption font-medium text-tint-strong">
           model answers from the bank
         </span>
       </header>
 
+      {/* Tabs navigate between bands; the selected tab carries the accent, and
+          the band number is in the label so colour is never the only signal
+          (tab-views.md; accessibility.md › Vision). */}
       <div className="mt-3 flex flex-wrap gap-1.5" role="tablist" data-testid="reference-tablist">
         {submission != null && (
           <TabButton id="yours" active={active} onSelect={setActive} label={submissionLabel} tone="slate" />
@@ -82,38 +85,40 @@ export function ReferenceTabs({ item, submission, submissionLabel = "Your answer
 
       <div className="mt-3" data-testid="reference-panel">
         {active === "yours" ? (
-          <p className="whitespace-pre-wrap rounded-lg bg-slate-50 p-3 text-[13px] leading-6 text-slate-700">
+          <p className="whitespace-pre-wrap rounded-control bg-surface p-3.5 text-footnote leading-6 text-ink">
             {submission?.trim() ? submission : "Nothing written for this task yet."}
           </p>
         ) : current ? (
           <div>
-            <div className="flex flex-wrap items-center gap-2 text-[11px]">
-              <span className="rounded-full bg-slate-900 px-2 py-0.5 font-semibold text-white">Band {formatBand(current.band)}</span>
-              <span className="text-slate-500">{current.wordCount} words</span>
-              {"whyBand" in current && <span className="text-slate-500">why this band</span>}
+            <div className="flex flex-wrap items-center gap-2 text-caption">
+              <span className="rounded-full bg-tint-soft px-2.5 py-0.5 font-semibold text-tint-strong">
+                Band {formatBand(current.band)}
+              </span>
+              <span className="text-ink-2">{current.wordCount} words</span>
+              {"whyBand" in current && <span className="text-ink-2">why this band</span>}
             </div>
-            <p className="mt-2 text-[13px] leading-6 text-slate-700">
+            <p className="mt-2 text-footnote leading-6 text-ink">
               <EvidenceSpan text={current.text} span={referenceSpan(current, task2)} block />
             </p>
             {task2 ? (
-              <p className="mt-3 rounded-lg bg-slate-50 p-3 text-xs leading-5 text-slate-600">
+              <p className="mt-3 rounded-control bg-surface p-3.5 text-caption leading-5 text-ink-2">
                 {(current as Task2Item["referenceAnswers"][number]).whyBand}
               </p>
             ) : (
-              <ul className="mt-3 list-disc space-y-1 rounded-lg bg-slate-50 p-3 pl-7 text-xs leading-5 text-slate-600">
+              <ul className="mt-3 list-disc space-y-1 rounded-control bg-surface p-3.5 pl-7 text-caption leading-5 text-ink-2">
                 {(current as Task1Item["referenceAnswers"][number]).defectProfile.map((defect) => (
                   <li key={defect}>{defect}</li>
                 ))}
               </ul>
             )}
-            <p className="mt-3 rounded-lg border-l-2 border-amber-300 bg-amber-50/50 px-3 py-2 text-xs leading-5 text-slate-700">
+            <p className="mt-3 rounded-control border-l-2 border-ink/15 bg-surface px-3.5 py-2 text-caption leading-5 text-ink">
               {task2
                 ? (current as Task2Item["referenceAnswers"][number]).feedback.feedbackStarter
                 : (current as Task1Item["referenceAnswers"][number]).feedbackStarter.text}
             </p>
           </div>
         ) : (
-          <p className="text-sm text-slate-500">This item doesn&rsquo;t include that band.</p>
+          <p className="text-subhead text-ink-2">This item doesn&rsquo;t include that band.</p>
         )}
       </div>
     </section>
@@ -138,15 +143,11 @@ function TabButton({
   label: string;
   active: string;
   onSelect: (id: string) => void;
+  /** Kept for API compatibility; band identity lives in the label, not the hue. */
   tone: "slate" | "amber" | "sky" | "emerald";
   testId?: string;
 }) {
-  const tones: Record<string, string> = {
-    slate: "bg-slate-900 text-white",
-    amber: "bg-amber-700 text-white",
-    sky: "bg-sky-700 text-white",
-    emerald: "bg-emerald-700 text-white",
-  };
+  void tone;
   const isActive = active === id;
   return (
     <button
@@ -156,8 +157,8 @@ function TabButton({
       data-testid={testId ?? `reference-tab-${id}`}
       onClick={() => onSelect(id)}
       className={cx(
-        "rounded-full px-3 py-1 text-xs font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900",
-        isActive ? tones[tone] : "bg-slate-100 text-slate-600 hover:bg-slate-200",
+        "min-h-[36px] rounded-full px-3.5 text-caption font-semibold transition-colors ease-apple focus-visible:outline-tint",
+        isActive ? "bg-tint-fill text-white" : "bg-ink/[0.04] text-ink-2 hover:bg-ink/[0.08] hover:text-ink",
       )}
     >
       {label}

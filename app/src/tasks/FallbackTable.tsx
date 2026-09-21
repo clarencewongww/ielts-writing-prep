@@ -81,7 +81,7 @@ export function FallbackTable({ item, reason, className, depth = 0 }: FallbackTa
 
   return (
     <section
-      className={cx('rounded-lg border border-slate-200 bg-white p-3', className)}
+      className={cx('paper rounded-control p-3.5 ring-1 ring-inset ring-line/60', className)}
       data-spec-id={item.specId}
       data-fallback="true"
     >

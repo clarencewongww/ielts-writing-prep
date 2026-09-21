@@ -109,21 +109,21 @@ function PieForYear({
       </FigureFrame>
       <ul className="mt-2 grid grid-cols-1 gap-x-4 gap-y-1 sm:grid-cols-2">
         {group.slices.map((slice, index) => (
-          <li key={`${slice.label ?? index}-${index}`} className="flex items-baseline gap-2 text-xs text-slate-600">
+          <li key={`${slice.label ?? index}-${index}`} className="flex items-baseline gap-2 text-caption text-ink-2">
             <span
               aria-hidden="true"
               className="inline-block h-2.5 w-2.5 shrink-0 translate-y-px rounded-sm"
               style={{ backgroundColor: CHART_COLORS[index % CHART_COLORS.length] }}
             />
             <span className="truncate">{slice.label ?? '—'}</span>
-            <span className="font-medium tabular-nums text-slate-800">
+            <span className="font-medium tabular-nums text-ink">
               {isFiniteNumber(slice.percent) ? `${slice.percent}${suffix}` : '—'}
             </span>
           </li>
         ))}
       </ul>
       {!slicesComplete ? (
-        <p className={cx('mt-1 text-[11px] text-rose-600')}>
+        <p className={cx('mt-1 text-caption text-danger')}>
           Slice total is {group.total}
           {suffix} but the bank reports a whole of {item.whole}. Check the task data.
         </p>

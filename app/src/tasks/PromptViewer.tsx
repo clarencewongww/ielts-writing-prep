@@ -37,11 +37,12 @@ const IDEA_GROUP_LABELS: Record<IdeaGroupKey, string> = {
   solutions: 'Solutions / measures',
 };
 
+/** Group headings are labels, not status: one ink tone keeps the checklist calm. */
 const IDEA_GROUP_HEADING: Record<IdeaGroupKey, string> = {
-  pro: 'text-emerald-700',
-  con: 'text-rose-700',
-  causes: 'text-amber-700',
-  solutions: 'text-teal-700',
+  pro: 'text-ink-2',
+  con: 'text-ink-2',
+  causes: 'text-ink-2',
+  solutions: 'text-ink-2',
 };
 
 /**
@@ -79,21 +80,21 @@ function SeedIdeasPanel({
       testId="seed-ideas"
       summary="Seed ideas"
       aside={
-        <span className="text-[11px] font-normal text-slate-400">
+        <span className="text-caption font-normal text-ink-2">
           {selectedCount} of {total} ticked — planning only,{' '}
           <span className="group-open:hidden">tap to expand</span>
           <span className="hidden group-open:inline">tap to collapse</span>
         </span>
       }
     >
-      <p className="mb-2 text-xs text-slate-500">
+      <p className="mb-2 text-caption text-ink-2">
         Tick the ideas you plan to use. Nothing here is inserted into your essay automatically; the arguments must
         be written in your own words.
       </p>
       <div data-testid="seed-ideas-checklist" className="grid gap-3 sm:grid-cols-2">
         {groups.map((group) => (
-          <div key={group.key} className="rounded-md border border-slate-200 p-2">
-            <p className={cx('mb-1 text-[11px] font-semibold uppercase tracking-wide', IDEA_GROUP_HEADING[group.key])}>
+          <div key={group.key} className="rounded-control border border-line p-2.5">
+            <p className={cx('mb-1 text-caption font-semibold uppercase tracking-wide', IDEA_GROUP_HEADING[group.key])}>
               {group.label}
             </p>
             <ul className="space-y-1.5">
@@ -107,9 +108,9 @@ function SeedIdeasPanel({
                       type="checkbox"
                       checked={Boolean(checked[id])}
                       onChange={() => toggle(id)}
-                      className="mt-0.5 h-3.5 w-3.5 shrink-0 rounded border-slate-300 text-teal-700 focus:ring-teal-500"
+                      className="mt-0.5 h-4 w-4 shrink-0 rounded accent-tint"
                     />
-                    <label htmlFor={`${prompt.promptId}-${id}`} className="text-xs leading-snug text-slate-700">
+                    <label htmlFor={`${prompt.promptId}-${id}`} className="text-caption leading-snug text-ink">
                       {idea}
                     </label>
                   </li>
@@ -131,7 +132,7 @@ export function PromptViewer({ prompt, className, thesisDefaultOpen = false, onC
   return (
     <article className={cx('w-full space-y-3', className)} data-prompt-id={prompt.promptId}>
       <header className="flex flex-wrap items-center gap-2">
-        <span className="font-mono text-[11px] text-slate-400">{prompt.promptId}</span>
+        <span className="font-mono text-caption text-ink-2">{prompt.promptId}</span>
         {prompt.family ? <Badge tone="indigo">{humanizeToken(prompt.family)}</Badge> : null}
         {prompt.variant ? <Badge tone="slate">Variant {prompt.variant}</Badge> : null}
         {prompt.topic ? (
@@ -139,20 +140,20 @@ export function PromptViewer({ prompt, className, thesisDefaultOpen = false, onC
             {humanizeToken(prompt.topic)}
           </Badge>
         ) : null}
-        <Badge tone={prompt.opinionRequired ? 'rose' : 'emerald'}>
+        <Badge tone={prompt.opinionRequired ? 'amber' : 'slate'}>
           {prompt.opinionRequired ? 'Opinion required' : 'No position required'}
         </Badge>
         {typeof prompt.questionCount === 'number' ? (
-          <Badge tone="amber">{pluralize(prompt.questionCount, 'question')}</Badge>
+          <Badge tone="slate">{pluralize(prompt.questionCount, 'question')}</Badge>
         ) : null}
         {typeof prompt.recommendedMinutes === 'number' ? <Badge tone="slate">{prompt.recommendedMinutes} min</Badge> : null}
         {target ? <Badge tone="slate">Target {target}</Badge> : null}
       </header>
 
-      <Card className="border-slate-300">
-        <p className="text-[15px] leading-relaxed text-slate-800">{prompt.statement}</p>
-        <p className="mt-2 text-sm font-semibold text-slate-900">{prompt.instruction}</p>
-        <p className="mt-2 text-xs text-slate-500">
+      <Card>
+        <p className="text-body text-ink">{prompt.statement}</p>
+        <p className="mt-2 text-headline font-semibold text-ink">{prompt.instruction}</p>
+        <p className="mt-2 text-caption text-ink-2">
           Write at least {prompt.wordTarget?.min ?? 250} words
           {target ? ` — aim for ${target}` : ''}
           {typeof prompt.wordTarget?.hardCeiling === 'number' ? `, ceiling ${prompt.wordTarget.hardCeiling}` : ''}
@@ -166,12 +167,12 @@ export function PromptViewer({ prompt, className, thesisDefaultOpen = false, onC
           summary="Thesis rule"
           defaultOpen={thesisDefaultOpen}
           aside={
-            <Badge tone={prompt.opinionRequired ? 'rose' : 'emerald'}>
+            <Badge tone={prompt.opinionRequired ? 'amber' : 'slate'}>
               {prompt.opinionRequired ? 'state a position' : 'no verdict needed'}
             </Badge>
           }
         >
-          <p className="text-sm leading-relaxed text-slate-700">{prompt.thesisRule}</p>
+          <p className="text-subhead leading-relaxed text-ink-2">{prompt.thesisRule}</p>
         </Collapsible>
       ) : null}
 
@@ -180,15 +181,15 @@ export function PromptViewer({ prompt, className, thesisDefaultOpen = false, onC
           testId="structure-preview"
           summary="Structure preview"
           aside={
-            <span className="text-[11px] font-normal text-slate-400">
+            <span className="text-caption font-normal text-ink-2">
               {pluralize(structure.length, 'paragraph')} total
             </span>
           }
         >
           <ol className="space-y-1">
             {structure.map((step, index) => (
-              <li key={`${step}-${index}`} className="flex items-start gap-2 text-sm text-slate-700">
-                <span className="mt-0.5 inline-flex h-5 w-5 min-w-5 items-center justify-center rounded-full bg-slate-800 text-[10px] font-semibold text-white">
+              <li key={`${step}-${index}`} className="flex items-start gap-2 text-subhead text-ink">
+                <span className="mt-0.5 inline-flex h-5 w-5 min-w-5 items-center justify-center rounded-full bg-tint-soft text-[10px] font-semibold text-tint-strong">
                   {index + 1}
                 </span>
                 <span>{step}</span>
@@ -204,15 +205,15 @@ export function PromptViewer({ prompt, className, thesisDefaultOpen = false, onC
         <Collapsible testId="banned-phrases" summary={`Phrases to avoid (${banned.length})`}>
           <ul className="space-y-1">
             {banned.map((phrase, index) => (
-              <li key={`${phrase}-${index}`} className="flex items-start gap-2 text-xs text-slate-600">
-                <span className="mt-0.5 shrink-0 text-rose-600" aria-hidden="true">
+              <li key={`${phrase}-${index}`} className="flex items-start gap-2 text-caption text-ink-2">
+                <span className="mt-0.5 shrink-0 text-danger" aria-hidden="true">
                   ✕
                 </span>
                 <span>{phrase}</span>
               </li>
             ))}
           </ul>
-          <p className="mt-2 text-[11px] text-slate-400">
+          <p className="mt-2 text-caption text-ink-2">
             These are the clichés the marking notes flag; the list is the same for every prompt in the bank.
           </p>
         </Collapsible>
@@ -221,9 +222,9 @@ export function PromptViewer({ prompt, className, thesisDefaultOpen = false, onC
       {(prompt.markingNotes || prompt.rubricRef) && (
         <Collapsible testId="marking-notes" summary="Marking notes">
           {prompt.markingNotes ? (
-            <p className="whitespace-pre-line text-sm text-slate-700">{prompt.markingNotes}</p>
+            <p className="whitespace-pre-line text-subhead text-ink">{prompt.markingNotes}</p>
           ) : null}
-          {prompt.rubricRef ? <p className="mt-2 text-[11px] text-slate-400">Rubric reference: {prompt.rubricRef}</p> : null}
+          {prompt.rubricRef ? <p className="mt-2 text-caption text-ink-2">Rubric reference: {prompt.rubricRef}</p> : null}
         </Collapsible>
       )}
     </article>

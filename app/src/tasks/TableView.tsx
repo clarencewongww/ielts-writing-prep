@@ -57,7 +57,7 @@ export function TableView({ item, title, caption, className }: TableViewProps) {
 
   if (columns.length === 0 || rows.length === 0) {
     return (
-      <section className={cx('rounded-lg border border-dashed border-slate-300 bg-slate-50 p-3', className)}>
+      <section className={cx('paper rounded-control border border-dashed border-line p-3', className)}>
         <p className="text-sm text-slate-500">Table {item.specId} has no rows or columns in the bank data.</p>
         <ChartAttribution />
       </section>
@@ -95,12 +95,13 @@ export function TableView({ item, title, caption, className }: TableViewProps) {
   const changeHeader = changeIndex >= 0 ? columns[changeIndex] : null;
 
   return (
-    <figure className={cx('w-full', className)} data-spec-id={item.specId} data-figure="app-generated">
+    <figure className={cx('paper w-full rounded-control p-1 ring-1 ring-inset ring-line/60', className)} data-spec-id={item.specId} data-figure="app-generated">
       {title ? <figcaption className="mb-1 text-sm font-semibold text-slate-700">{title}</figcaption> : null}
       {caption ? <p className="mb-2 text-xs text-slate-500">{caption}</p> : null}
       {item.unitsNote ? <p className="mb-2 text-xs italic leading-snug text-slate-500">{item.unitsNote}</p> : null}
 
-      <div className="overflow-x-auto rounded border border-slate-200">
+      {/* Scroll container: wide tables scroll inside the card instead of widening the page. */}
+      <div className="max-w-full overflow-x-auto overscroll-x-contain rounded border border-slate-200">
         <table className="min-w-full border-collapse text-left text-sm">
           <thead>
             <tr className="bg-slate-100 text-slate-700">

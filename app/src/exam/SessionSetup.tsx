@@ -89,41 +89,39 @@ export function SessionSetup() {
   };
 
   return (
-    <main className="min-h-screen bg-stone-100" data-testid="setup-screen">
-      <div className="mx-auto max-w-6xl px-4 py-6 sm:py-8">
-        {/* Hero: everything a learner needs to start. */}
-        <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-md shadow-slate-200/60 sm:p-6 lg:grid lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)] lg:items-start lg:gap-10">
-          <div>
+    <main className="min-h-screen bg-surface" data-testid="setup-screen">
+      <div className="mx-auto max-w-6xl px-3 py-4 sm:px-4 sm:py-8">
+        {/* Hero: everything a learner needs to start.
+            Phone source order is heading → summary + Start → tip, so the primary action
+            stays above the fold; on lg the tip drops under the heading (col 1) while the
+            summary rail stays in column 2.
+            Apple check (layout.md › Visual hierarchy): one prominent button in the view;
+            style — not size — carries the preference (buttons.md › Style). */}
+        <section className="grid min-w-0 gap-5 rounded-card border border-line bg-content p-5 shadow-card sm:p-8 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)] lg:items-start lg:gap-12">
+          <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-600">
+              <p className="text-caption font-semibold uppercase tracking-[0.22em] text-ink-2">
                 IELTS Academic Writing
               </p>
               <span
                 data-testid="mode-badge"
-                className="rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-[11px] font-medium text-amber-900"
+                className="rounded-full bg-tint-soft px-2.5 py-1 text-caption font-medium text-tint-strong"
               >
                 Computer-based • same editor, same clock
               </span>
             </div>
 
-            <h1 className="mt-3 text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">
-              You've got this — 60 minutes, 2 tasks
+            <h1 className="mt-3 text-[1.75rem] font-semibold leading-8 tracking-[-0.02em] text-ink sm:text-display lg:text-display-lg">
+              You&rsquo;ve got this — 60 minutes, 2&nbsp;tasks
             </h1>
-            <p className="mt-2 max-w-xl text-sm leading-6 text-slate-600">
+            <p className="mt-3 max-w-xl text-body text-ink-2 [@media(max-width:359px)]:line-clamp-4">
               Pick a chart + essay, then write — the timer runs 60:00 as a hard stop, and 20/40 is just a guide.
               Take a breath first; the clock only starts when you&rsquo;re ready.
             </p>
-            <p
-              data-testid="order-tip"
-              className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2.5 text-xs leading-5 text-amber-900"
-            >
-              <span className="font-semibold">Tip:</span> many teachers start with Task 2 — it carries more marks.
-              Either order works; the clock is 60:00 either way.
-            </p>
           </div>
 
-          <div className="mt-5 lg:mt-0">
-            <dl className="grid gap-2 text-xs sm:grid-cols-2 lg:grid-cols-1">
+          <div className="min-w-0 lg:col-start-2 lg:row-span-2 lg:row-start-1">
+            <dl className="grid min-w-0 gap-2.5 text-footnote sm:grid-cols-2 lg:grid-cols-1">
               <SummaryRow
                 label="Order"
                 value={task2Order === "t2-first" ? "Task 2 → Task 1" : "Task 1 → Task 2"}
@@ -139,12 +137,14 @@ export function SessionSetup() {
               />
             </dl>
 
+            {/* Hit region 44px (accessibility.md › Mobility: default 44x44 pt);
+                full-width inside the card, never stretched across the layout. */}
             <button
               type="button"
               data-testid="start-session"
               onClick={handleStart}
               disabled={!task1Item || !task2Item}
-              className="mt-4 w-full rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-slate-900/15 transition-colors hover:bg-slate-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900 disabled:cursor-not-allowed disabled:bg-slate-300"
+              className="mt-5 min-h-[44px] w-full rounded-full bg-tint-fill px-5 text-headline font-semibold text-white shadow-sm transition-colors ease-apple hover:bg-tint-strong focus-visible:outline-tint disabled:cursor-not-allowed disabled:bg-ink/10 disabled:text-ink-3 disabled:shadow-none"
             >
               Start 60-minute session
             </button>
@@ -152,19 +152,34 @@ export function SessionSetup() {
               type="button"
               data-testid="random-prompts"
               onClick={handleRandom}
-              className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:border-amber-300 hover:bg-amber-50/60 hover:text-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900"
+              className="mt-2.5 min-h-[44px] w-full rounded-full border border-line px-5 text-subhead font-medium text-ink transition-colors ease-apple hover:bg-surface focus-visible:outline-tint"
             >
               Random prompts
             </button>
-            <p className="mt-3 text-[11px] leading-5 text-slate-500">
-              It saves as you go in this browser — reload and you'll land right back here, mid-session.
+            <p className="mt-3 text-caption leading-5 text-ink-2">
+              It saves as you go in this browser — reload and you&rsquo;ll land right back here, mid-session.
+            </p>
+          </div>
+
+          <div className="min-w-0 lg:col-start-1 lg:row-start-2">
+            {/* Advice, not a warning: neutral surface with an accent glyph, so amber
+                stays reserved for warnings and score caps (color.md › Best practices). */}
+            <p
+              data-testid="order-tip"
+              className="rounded-control bg-surface px-4 py-3 text-footnote leading-5 text-ink-2"
+            >
+              <span className="text-tint" aria-hidden="true">
+                ⓘ{" "}
+              </span>
+              <span className="font-semibold text-ink">Tip:</span> many teachers start with Task 2 — it carries
+              more marks. Either order works; the clock is 60:00 either way.
             </p>
           </div>
         </section>
 
-        <div className="mt-6">
-          <h2 className="text-sm font-semibold text-slate-900">Want to swap in your own prompts?</h2>
-          <p className="mt-1 text-xs leading-5 text-slate-600">
+        <div className="mt-8">
+          <h2 className="text-headline font-semibold text-ink">Want to swap in your own prompts?</h2>
+          <p className="mt-1 text-footnote leading-5 text-ink-2">
             Optional — a solid pair is already loaded. Open a section to change the chart, the essay family or
             the order, and your choices are remembered next time.
           </p>
@@ -261,7 +276,7 @@ export function SessionSetup() {
                   detail="The essay carries more marks; many teachers start here."
                 />
               </div>
-              <p className="mt-2 text-[11px] leading-5 text-slate-500">
+              <p className="mt-2 text-caption leading-5 text-ink-2">
                 Either order works — the clock stays 60:00 total.
               </p>
             </Disclosure>
@@ -271,13 +286,13 @@ export function SessionSetup() {
               title="Demo samples"
               hint={`${demoSamples.length} ready-made submissions`}
             >
-              <p className="text-xs leading-5 text-slate-500">
+              <p className="text-footnote leading-5 text-ink-2">
                 In a hurry? Skip the clock and open a finished report. Each sample is built from the practice
                 bank&rsquo;s own model answers, so you can see how caps, evidence spans and the B6/B7/B8 tabs read
                 on a real submission.
               </p>
               {demoSamples.length === 0 ? (
-                <p className="mt-2 text-xs text-amber-800">
+                <p className="mt-2 text-footnote text-warn">
                   Demo samples aren&rsquo;t available with the current question bank.
                 </p>
               ) : (
@@ -288,13 +303,13 @@ export function SessionSetup() {
                         type="button"
                         data-testid={`demo-${sample.definition.id}`}
                         onClick={() => actions.loadSample(sample.selection, sample.texts)}
-                        className="h-full w-full rounded-xl border border-slate-200 p-3 text-left transition-colors hover:border-amber-300 hover:bg-amber-50/50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900"
+                        className="h-full w-full rounded-control border border-line p-3.5 text-left transition-colors ease-apple hover:border-tint/40 hover:bg-tint-soft/50 focus-visible:outline-tint"
                       >
-                        <span className="block text-sm font-semibold text-slate-900">{sample.definition.label}</span>
-                        <span className="mt-0.5 block text-xs leading-5 text-slate-500">
+                        <span className="block text-subhead font-semibold text-ink">{sample.definition.label}</span>
+                        <span className="mt-0.5 block text-caption leading-5 text-ink-2">
                           {sample.definition.summary}
                         </span>
-                        <span className="mt-1.5 block text-[11px] leading-5 text-amber-800">
+                        <span className="mt-1.5 block text-caption leading-5 text-tint-strong">
                           {humanizeExpectation(sample.definition.expectation)} ·{" "}
                           {sample.words.task1 + sample.words.task2} words together
                         </span>
@@ -311,7 +326,8 @@ export function SessionSetup() {
   );
 }
 
-/** Collapsed-by-default disclosure used for every optional picker. */
+/** Collapsed-by-default disclosure used for every optional picker.
+ *  Progressive disclosure instead of density (layout.md › Best practices). */
 function Disclosure({
   testId,
   title,
@@ -326,16 +342,16 @@ function Disclosure({
   return (
     <details
       data-testid={testId}
-      className="group rounded-2xl border border-slate-200 bg-white shadow-sm shadow-slate-200/50"
+      className="group rounded-card border border-line bg-content shadow-card"
     >
-      <summary className="flex cursor-pointer list-none items-center gap-3 rounded-2xl p-4 transition-colors hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900 [&::-webkit-details-marker]:hidden">
-        <span className="text-sm font-semibold text-slate-900">{title}</span>
-        <span className="ml-auto flex items-center gap-2">
-          {hint && <span className="text-[11px] text-slate-500">{hint}</span>}
+      <summary className="flex min-h-[44px] cursor-pointer list-none flex-wrap items-center gap-x-3 gap-y-1 rounded-card p-4 transition-colors ease-apple hover:bg-surface focus-visible:outline-tint [&::-webkit-details-marker]:hidden">
+        <span className="text-headline font-semibold text-ink">{title}</span>
+        <span className="ml-auto flex min-w-0 items-center gap-2">
+          {hint && <span className="text-caption text-ink-2">{hint}</span>}
           <ChevronIcon />
         </span>
       </summary>
-      <div className="border-t border-slate-100 p-4">{children}</div>
+      <div className="border-t border-line-soft p-4">{children}</div>
     </details>
   );
 }
@@ -356,13 +372,15 @@ function Select({
   const inputId = `setup-${name}`;
   return (
     <label className="block" htmlFor={inputId}>
-      <span className="text-xs font-medium text-slate-600">{label}</span>
+      <span className="text-footnote font-medium text-ink-2">{label}</span>
+      {/* 44px tall on touch; 10px control radius matches the system feel
+          (text-fields.md › Best practices: label + hint, sensible tab order). */}
       <select
         id={inputId}
         name={name}
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-2.5 py-2 text-sm text-slate-800 outline-none focus:border-slate-400 focus:ring-2 focus:ring-slate-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900"
+        className="mt-1 min-h-[44px] w-full rounded-control border border-line bg-content px-3 text-subhead text-ink outline-none transition-colors ease-apple focus:border-tint focus:ring-4 focus:ring-tint/15 focus-visible:outline-none"
       >
         {options.map((option) => (
           <option key={option.value} value={option.value}>
@@ -384,12 +402,12 @@ function Preview({
   meta: string[];
 }) {
   return (
-    <div className="mt-3 rounded-xl border border-slate-100 bg-slate-50 p-3">
-      <p className="text-sm leading-6 text-slate-800">{statement}</p>
+    <div className="mt-3 rounded-control bg-surface p-3.5">
+      <p className="text-subhead leading-6 text-ink">{statement}</p>
       {instruction && (
-        <p className="mt-2 text-sm font-semibold leading-6 text-slate-900">{instruction}</p>
+        <p className="mt-2 text-subhead font-semibold leading-6 text-ink">{instruction}</p>
       )}
-      <p className="mt-2 text-[11px] text-slate-500">{meta.filter(Boolean).join(" · ")}</p>
+      <p className="mt-2 text-caption text-ink-2">{meta.filter(Boolean).join(" · ")}</p>
     </div>
   );
 }
@@ -409,8 +427,8 @@ function OrderOption({
 }) {
   return (
     <label
-      className={`flex cursor-pointer items-start gap-3 rounded-xl border p-3 transition-colors has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-slate-900 ${
-        checked ? "border-amber-400 bg-amber-50/70" : "border-slate-200 hover:border-slate-300"
+      className={`flex min-h-[44px] cursor-pointer items-start gap-3 rounded-control border p-3 transition-colors ease-apple has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-tint ${
+        checked ? "border-tint bg-tint-soft" : "border-line hover:bg-surface"
       }`}
     >
       <input
@@ -419,11 +437,11 @@ function OrderOption({
         value={value}
         checked={checked}
         onChange={onChange}
-        className="mt-1 accent-amber-600"
+        className="mt-1 h-4 w-4 accent-tint"
       />
       <span>
-        <span className="block text-sm font-semibold text-slate-900">{title}</span>
-        <span className="mt-0.5 block text-xs leading-5 text-slate-500">{detail}</span>
+        <span className="block text-subhead font-semibold text-ink">{title}</span>
+        <span className="mt-0.5 block text-footnote leading-5 text-ink-2">{detail}</span>
       </span>
     </label>
   );
@@ -434,7 +452,7 @@ function ChevronIcon() {
     <svg
       aria-hidden="true"
       viewBox="0 0 24 24"
-      className="h-4 w-4 shrink-0 text-slate-400 transition-transform group-open:rotate-180 group-open:text-amber-600"
+      className="h-4 w-4 shrink-0 text-ink-3 transition-transform ease-apple group-open:rotate-180 group-open:text-tint"
       fill="none"
       stroke="currentColor"
       strokeWidth="2"
@@ -446,9 +464,11 @@ function ChevronIcon() {
 
 function SummaryRow({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex gap-3">
-      <dt className="w-14 shrink-0 font-medium text-slate-500">{label}</dt>
-      <dd className="min-w-0 truncate text-slate-800" title={value}>
+    /* Phone: label stays inline with the value so long topics wrap instead of
+       truncating; from sm the label becomes a w-16 column with an ellipsis value. */
+    <div className="flex min-w-0 gap-2 border-b border-line-soft pb-2 last:border-0 last:pb-0 sm:gap-3">
+      <dt className="shrink-0 font-medium text-ink-2 sm:w-16">{label}</dt>
+      <dd className="min-w-0 flex-1 text-ink sm:truncate" title={value}>
         {value}
       </dd>
     </div>

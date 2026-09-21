@@ -18,7 +18,12 @@ export interface SpanLike {
 
 export type EvidenceSpanInput = SpanLike | string | null | undefined;
 
-const MARK_CLASS = "rounded bg-amber-200/80 px-0.5 text-slate-900 ring-1 ring-amber-300";
+/* Evidence highlighting is a selection, so it borrows the accent-soft tint
+   rather than a one-off yellow: one colour, one meaning (color.md › Best
+   practices). `box-decoration-clone` gives each line of a multi-line quote its
+   own rounded tint instead of one box spanning the whole span. Text stays ink
+   at 13.4:1 on the soft tint (dark) / 14.9:1 (light). */
+const MARK_CLASS = "box-decoration-clone rounded-[3px] bg-tint-soft px-0.5 text-ink";
 
 /** Renders `text` with the matched span highlighted. */
 export function EvidenceSpan({
@@ -78,7 +83,7 @@ export function EvidenceExcerpt({
 }) {
   const resolved = normalizeSpan(text, span ?? null);
   if (!resolved) {
-    return <span className={cx("italic text-slate-500", className)}>{emptyLabel}</span>;
+    return <span className={cx("italic text-ink-2", className)}>{emptyLabel}</span>;
   }
   const start = Math.max(0, resolved.startChar - context);
   const end = Math.min(text.length, resolved.endChar + context);
@@ -110,7 +115,7 @@ export function EvidenceText({
   return (
     <p
       className={cx(
-        "max-h-72 overflow-y-auto whitespace-pre-wrap rounded-lg bg-slate-50 p-3 text-[13px] leading-6 text-slate-700",
+        "max-h-72 overflow-y-auto whitespace-pre-wrap rounded-control bg-surface p-3.5 text-footnote leading-6 text-ink-2",
         className,
       )}
     >

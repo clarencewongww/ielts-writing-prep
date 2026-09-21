@@ -141,10 +141,10 @@ function MapPanel({
 
   return (
     <g>
-      <text x={innerX} y={12} fontSize={6.4} fontWeight={700} fill="#0f172a">
+      <text x={innerX} y={12} fontSize={6.4} fontWeight={700} fill="#1D1D1F">
         {label}
       </text>
-      <rect x={innerX} y={innerY} width={innerW} height={innerH} rx={2} fill="#ffffff" stroke="#94a3b8" strokeWidth={0.5} />
+      <rect x={innerX} y={innerY} width={innerW} height={innerH} rx={2} fill="#ffffff" stroke="#86868B" strokeWidth={0.5} />
       {Array.from(bySlot.entries()).map(([slot, entries]) => {
         const { col, row } = SLOT_COORDS[slot];
         const stackHeight = cellH / entries.length;
@@ -155,8 +155,8 @@ function MapPanel({
           const boxW = cellW - 2;
           const boxH = stackHeight - 2;
           const unchanged = isUnchanged(change);
-          const fill = !change ? '#e2e8f0' : unchanged ? '#ecfdf5' : '#fef9c3';
-          const stroke = !change ? '#94a3b8' : unchanged ? '#10b981' : '#eab308';
+          const fill = !change ? '#E8E8ED' : unchanged ? '#ECFDF5' : '#FFFBEB';
+          const stroke = !change ? '#86868B' : unchanged ? '#047857' : '#B45309';
           const detail = change ? (after ? change.to ?? '' : change.from ?? '') : '';
           const detailLines = wrapText(detail, 17, 2);
           const boxTitle = change
@@ -174,7 +174,7 @@ function MapPanel({
                   fontSize={4}
                   fontWeight={600}
                   textAnchor="middle"
-                  fill="#0f172a"
+                  fill="#1D1D1F"
                 >
                   {line}
                 </text>
@@ -186,7 +186,7 @@ function MapPanel({
                   y={boxY + 14.6 + lineIndex * 3.9}
                   fontSize={3.3}
                   textAnchor="middle"
-                  fill={unchanged ? '#047857' : '#854d0e'}
+                  fill={unchanged ? '#047857' : '#B45309'}
                 >
                   {line}
                 </text>
@@ -207,7 +207,7 @@ export function MapView({ item, className, heightClass = 'h-auto min-h-[180px]' 
 
   if (areas.length === 0 && changes.length === 0) {
     return (
-      <section className={cx('rounded-lg border border-dashed border-slate-300 bg-slate-50 p-3', className)}>
+      <section className={cx('paper rounded-control border border-dashed border-line p-3.5', className)}>
         <p className="text-sm text-slate-500">Map {item.specId} has no areas or changes in the bank data.</p>
         <ChartAttribution />
       </section>
@@ -218,10 +218,10 @@ export function MapView({ item, className, heightClass = 'h-auto min-h-[180px]' 
   const changedCount = changes.filter((change) => !isUnchanged(change)).length;
 
   return (
-    <figure className={cx('w-full', className)} data-spec-id={item.specId} data-figure="app-generated">
+    <figure className={cx('paper w-full rounded-control p-2.5 ring-1 ring-inset ring-line/60', className)} data-spec-id={item.specId} data-figure="app-generated">
       {item.unitsNote ? <p className="mb-2 text-xs italic leading-snug text-slate-500">{item.unitsNote}</p> : null}
 
-      <div className="overflow-hidden rounded border border-slate-200 bg-white p-2">
+      <div className="overflow-hidden rounded-control p-1.5">
         <svg
           viewBox="0 0 240 116"
           className={cx('mx-auto w-full max-w-3xl', heightClass)}
@@ -241,15 +241,15 @@ export function MapView({ item, className, heightClass = 'h-auto min-h-[180px]' 
 
       <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px] text-slate-500">
         <span className="flex items-center gap-1">
-          <span className="inline-block h-2.5 w-2.5 rounded-sm border border-yellow-400 bg-yellow-100" aria-hidden="true" />
+          <span className="inline-block h-2.5 w-2.5 rounded-sm border border-warn/40 bg-warn-soft" aria-hidden="true" />
           changed by {String(afterYear)}
         </span>
         <span className="flex items-center gap-1">
-          <span className="inline-block h-2.5 w-2.5 rounded-sm border border-emerald-400 bg-emerald-50" aria-hidden="true" />
+          <span className="inline-block h-2.5 w-2.5 rounded-sm border border-ok/40 bg-ok-soft" aria-hidden="true" />
           unchanged
         </span>
         <span className="flex items-center gap-1">
-          <span className="inline-block h-2.5 w-2.5 rounded-sm border border-slate-300 bg-slate-100" aria-hidden="true" />
+          <span className="inline-block h-2.5 w-2.5 rounded-sm border border-line bg-surface" aria-hidden="true" />
           no change reported
         </span>
         <Badge tone="amber">{changedCount} changes listed</Badge>
