@@ -1,0 +1,31 @@
+{
+  "name": "ielts-writing-cbt",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "IELTS Academic Writing practice app: 60-minute CBT/paper simulation with bank-driven tasks.",
+  "scripts": {
+    "sync:bank": "node scripts/sync-bank.mjs",
+    "predev": "npm run sync:bank",
+    "dev": "vite",
+    "prebuild": "npm run sync:bank",
+    "build": "npm run typecheck && vite build",
+    "typecheck": "tsc --noEmit",
+    "preview": "vite preview --port 4173 --strictPort"
+  },
+  "dependencies": {
+    "chart.js": "^4.4.7",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.3.4",
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.4.49",
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5.6.3",
+    "vite": "^5.4.11"
+  }
+}

@@ -1,0 +1,22 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    height: 100%;
+  }
+
+  body {
+    @apply min-h-full bg-slate-100 font-sans text-slate-900 antialiased;
+  }
+
+  /* Hide the default disclosure triangle; PlanningNotes draws its own chevron. */
+  summary::-webkit-details-marker {
+    display: none;
+  }
+
+  summary {
+    list-style: none;
+  }
+}

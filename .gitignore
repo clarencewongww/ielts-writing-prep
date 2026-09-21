@@ -1,0 +1,16 @@
+# Dependencies
+node_modules/
+app/node_modules/
+
+# Build output
+app/dist/
+dist/
+
+# Logs
+*.log
+
+# macOS
+.DS_Store
+
+# Local scratch (never commit; /var/folders scratch stays outside the repo)
+.scratch/
