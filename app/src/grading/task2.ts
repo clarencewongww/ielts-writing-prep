@@ -37,6 +37,8 @@ import {
   detectPunctuation,
   detectUncountables,
   repetitionReport,
+  spellingDensityBand,
+  task2SpellingAllowlist,
   type LexicalHit,
   type SpellingHit,
 } from "./lexical";
@@ -645,7 +647,7 @@ export function analyzeTask2(item: Task2Item, rawText: string): Task2Analysis {
     punctuation: detectPunctuation(text),
     uncountable: detectUncountables(text),
     informal: detectInformal(text),
-    spelling: detectMisspellings(text),
+    spelling: detectMisspellings(text, task2SpellingAllowlist(item)),
   };
   const grammarHits = detectGrammarErrors(text);
   const punctuationHits = detectPunctuationIssues(text);
@@ -1300,24 +1302,36 @@ export function gradeTask2(item: Task2Item, rawText: string): Task2Grade {
     failed: lexical.uncountable.length > 0,
   });
 
-  const spellingRate = metrics.words === 0 ? 0 : (lexical.spelling.length / metrics.words) * 100;
-  const spellingHeavy = lexical.spelling.length >= 4 || spellingRate > 1.5;
+  /*
+   * Spelling density (§9.4): mostly error-free → 8, few → 7, some → 6,
+   * frequent → 5. Distance-3 advisory suggestions count half so one rare word
+   * cannot cap the band on its own.
+   */
+  const spellingErrorCount = lexical.spelling.filter((hit) => hit.severity === "error").length;
+  const spellingUpgradeCount = lexical.spelling.length - spellingErrorCount;
+  const spellingWeight = spellingErrorCount + spellingUpgradeCount * 0.5;
+  const spellingBand = spellingDensityBand(spellingWeight, metrics.words);
+  const firstSpelling = lexical.spelling[0];
   addCap({
     checkId: "t2.lr.spelling",
     criterion: "LR",
-    cap: spellingHeavy ? 5 : 6,
+    cap: spellingBand,
     label: "Spelling accuracy",
     observed: `${lexical.spelling.length} misspelling(s)`,
     reason:
       lexical.spelling.length === 0
         ? "No flagged misspellings."
-        : `Misspellings: ${lexical.spelling.map((hit) => `"${hit.match}"`).join(", ")}.`,
-    severity: "error",
-    evidence: lexical.spelling[0]
-      ? { startChar: lexical.spelling[0].startChar, endChar: lexical.spelling[0].endChar, text: lexical.spelling[0].match }
+        : `Misspellings: ${lexical.spelling.map((hit) => `"${hit.match}" → "${hit.correction}"`).join(", ")}.`,
+    severity: spellingErrorCount > 0 ? "error" : "upgrade",
+    evidence: firstSpelling
+      ? { startChar: firstSpelling.startChar, endChar: firstSpelling.endChar, text: firstSpelling.match }
       : spanOf(text, 0, 0),
-    feedbackStarter: lexical.spelling[0] ? `Spelling slip: "${lexical.spelling[0].match}".` : "No spelling slips.",
-    fixSuggestion: lexical.spelling[0] ? `Correct it to "${lexical.spelling[0].correction}".` : "Proof-read key topic terms last.",
+    feedbackStarter: firstSpelling
+      ? `Spelling: "${firstSpelling.match}" → did you mean "${firstSpelling.correction}"?`
+      : "No spelling slips.",
+    fixSuggestion: firstSpelling
+      ? `Replace "${firstSpelling.match}" with "${firstSpelling.correction}" — spelling errors count under Lexical Resource.`
+      : "Proof-read key topic terms last.",
     failed: lexical.spelling.length > 0,
   });
 

@@ -86,16 +86,24 @@ export function Collapsible({
   defaultOpen = false,
   className,
   aside,
+  testId,
 }: {
   summary: ReactNode;
   children: ReactNode;
+  /** Open on first render. Every exam-side caller defaults to collapsed. */
   defaultOpen?: boolean;
   className?: string;
   aside?: ReactNode;
+  /** Stable hook for collapsed-state assertions; the native <details> carries the state. */
+  testId?: string;
 }) {
   return (
-    <details open={defaultOpen} className={cx('group rounded-lg border border-slate-200 bg-white', className)}>
-      <summary className="flex cursor-pointer list-none items-center justify-between gap-2 px-3 py-2 text-sm font-medium text-slate-700 marker:content-none">
+    <details
+      data-testid={testId}
+      open={defaultOpen}
+      className={cx('group rounded-lg border border-slate-200 bg-white', className)}
+    >
+      <summary className="flex cursor-pointer list-none flex-wrap items-center justify-between gap-x-2 gap-y-1 rounded-lg px-3 py-2 text-sm font-medium text-slate-700 focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-slate-500 marker:content-none">
         <span className="flex items-center gap-2">
           <span className="text-slate-400 transition-transform group-open:rotate-90" aria-hidden="true">
             ▶

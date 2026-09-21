@@ -16,7 +16,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { SESSION_TOTAL_MS, buildSession } from "../constants";
+import { DEFAULT_TASK_ORDER, FIXED_EXAM_MODE, SESSION_TOTAL_MS, buildSession } from "../constants";
 import { getTask1Item, getTask2Item, type BankData } from "../data/bankLoader";
 import { countWords } from "../data/wordCount";
 import {
@@ -24,7 +24,6 @@ import {
   clearSessionKeys,
   createPersistenceScheduler,
   loadSessionState,
-  loadSetupPrefs,
   loadTaskTimings,
   patchSetupPrefs,
   saveSessionState,
@@ -49,13 +48,13 @@ import type { Task1Item, Task2Item } from "../types/bank";
 import type { GradingReport } from "../types/grading";
 
 export interface SessionActions {
-  /** Begins a fresh 60-minute session with the chosen task items. */
-  start(selection: SessionSelection, mode: ExamMode): void;
+  /** Begins a fresh 60-minute session with the chosen task items (CBT only). */
+  start(selection: SessionSelection): void;
   /**
    * Skips the exam clock: loads a pre-written submission pair, marks the session
    * `submitted` and lets the app grade it (setup-screen demo samples).
    */
-  loadSample(selection: SessionSelection, texts: SampleTexts, mode: ExamMode): void;
+  loadSample(selection: SessionSelection, texts: SampleTexts): void;
   setActiveTask(task: TaskNumber): void;
   /** Records the first time a task was opened (idempotent). */
   markTaskStarted(task: TaskNumber): void;
@@ -155,7 +154,6 @@ export interface SessionProviderProps {
 
 export function SessionProvider({ bank, children }: SessionProviderProps) {
   const [state, setState] = useState<SessionState>(() => restoreSession(bank.manifest.version));
-  const [mode, setMode] = useState<ExamMode>(() => loadSetupPrefs()?.mode ?? "computer");
   const [timings, setTimings] = useState<TaskTimings>(() => loadTaskTimings());
   const [scheduler] = useState(() => createPersistenceScheduler(STORAGE_DEBOUNCE_MS));
 
@@ -249,8 +247,8 @@ export function SessionProvider({ bank, children }: SessionProviderProps) {
   }, []);
 
   const start = useCallback(
-    (selection: SessionSelection, selectedMode: ExamMode) => {
-      const order = selection.task2Order ?? "t2-first";
+    (selection: SessionSelection) => {
+      const order = selection.task2Order ?? DEFAULT_TASK_ORDER;
       const startedAt = nowIso();
       const activeTask: TaskNumber = order === "t2-first" ? 2 : 1;
       const next: SessionState = {
@@ -272,16 +270,15 @@ export function SessionProvider({ bank, children }: SessionProviderProps) {
       setTimings(nextTimings);
       saveTaskTimings(nextTimings);
 
-      setMode(selectedMode);
-      patchSetupPrefs({ ...selection, task2Order: order, mode: selectedMode });
+      patchSetupPrefs({ ...selection, task2Order: order, mode: FIXED_EXAM_MODE });
       replaceState(next, true);
     },
     [bank.manifest.version, replaceState],
   );
 
   const loadSample = useCallback(
-    (selection: SessionSelection, texts: SampleTexts, selectedMode: ExamMode) => {
-      const order = selection.task2Order ?? "t2-first";
+    (selection: SessionSelection, texts: SampleTexts) => {
+      const order = selection.task2Order ?? DEFAULT_TASK_ORDER;
       const now = nowIso();
       const submission: Submission = {
         task1: {
@@ -316,8 +313,7 @@ export function SessionProvider({ bank, children }: SessionProviderProps) {
       setTimings(nextTimings);
       saveTaskTimings(nextTimings);
 
-      setMode(selectedMode);
-      patchSetupPrefs({ ...selection, task2Order: order, mode: selectedMode });
+      patchSetupPrefs({ ...selection, task2Order: order, mode: FIXED_EXAM_MODE });
       replaceState(next, true);
     },
     [bank.manifest.version, replaceState],
@@ -425,7 +421,9 @@ export function SessionProvider({ bank, children }: SessionProviderProps) {
     ],
   );
 
-  const session = useMemo(() => buildSession(mode), [mode]);
+  /* CBT only: the mode is fixed, so there is no mode state to keep in sync. */
+  const session = useMemo(() => buildSession(FIXED_EXAM_MODE), []);
+  const mode = session.mode;
   const task1Item = useMemo(() => getTask1Item(bank, state.selection.task1Id), [bank, state.selection.task1Id]);
   const task2Item = useMemo(() => getTask2Item(bank, state.selection.task2Id), [bank, state.selection.task2Id]);
 

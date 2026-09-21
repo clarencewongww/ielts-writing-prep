@@ -48,7 +48,7 @@ export function AnswerBox({ task, value, onChange, disabled, placeholder }: Answ
         lang="en-GB"
         wrap="soft"
         placeholder={placeholder ?? "Type your answer here…"}
-        className={`min-h-[420px] w-full flex-1 resize-y bg-white px-4 py-3 font-sans text-[15px] leading-7 text-slate-900 outline-none placeholder:text-slate-400 focus:ring-2 focus:ring-inset focus:ring-slate-300 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-600 ${
+        className={`min-h-[420px] w-full flex-1 resize-y bg-white px-4 py-3 font-sans text-[15px] leading-7 text-slate-900 caret-amber-600 outline-none placeholder:text-slate-400 focus:ring-2 focus:ring-inset focus:ring-amber-300 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-600 ${
           uiRules.allowHighlight ? "" : "selection:bg-slate-300/60"
         }`}
       />
@@ -61,7 +61,7 @@ export function AnswerBox({ task, value, onChange, disabled, placeholder }: Answ
             <rect x="5" y="11" width="14" height="9" rx="2" />
             <path d="M8 11V8a4 4 0 0 1 8 0v3" />
           </svg>
-          Read-only — this task is locked
+          Locked — this answer is read-only now
         </div>
       )}
     </div>

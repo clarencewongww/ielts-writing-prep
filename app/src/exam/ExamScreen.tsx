@@ -1,7 +1,6 @@
 /** Exam screen shell: sticky header (timer · task switcher · submit) + the active task workspace. */
 
 import { useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
-import { describeBank } from "../data/bankLoader";
 import { countWords } from "../data/wordCount";
 import { draftKey, taskKey, type TaskNumber } from "../types/session";
 import { TaskPanel } from "./TaskPanel";
@@ -10,7 +9,7 @@ import { useSession } from "./useSession";
 import { useTimer } from "./useTimer";
 
 export function ExamScreen() {
-  const { state, session, bank, actions } = useSession();
+  const { state, session } = useSession();
   const timer = useTimer();
   const [overlayDismissed, setOverlayDismissed] = useState(false);
 
@@ -19,18 +18,17 @@ export function ExamScreen() {
   }, [timer.expired]);
 
   return (
-    <div className="min-h-screen bg-slate-100" data-testid="exam-screen">
+    <div className="min-h-screen bg-stone-100" data-testid="exam-screen">
       <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur">
         <div className="mx-auto flex max-w-[1400px] flex-wrap items-center gap-x-4 gap-y-3 px-4 py-3">
           <div className="flex items-center gap-2.5">
-            <span className="grid h-9 w-9 place-items-center rounded-lg bg-slate-900 text-white">
+            <span className="grid h-9 w-9 place-items-center rounded-xl bg-slate-900 text-white">
               <PenIcon />
             </span>
             <div className="leading-tight">
               <div className="text-sm font-semibold text-slate-900">IELTS Writing</div>
               <div className="text-[11px] text-slate-500">
-                {session.mode === "computer" ? "Computer-based" : "Paper practice"} · 60 min · bank v
-                {bank.manifest.version}
+                {session.mode === "computer" ? "Computer-based" : "Paper practice"} · 60 minutes · 2 tasks
               </div>
             </div>
           </div>
@@ -48,9 +46,10 @@ export function ExamScreen() {
           <div className="mx-auto flex max-w-[1400px] items-start gap-2 px-4 py-1.5 text-[11px] leading-5 text-slate-500">
             <InfoIcon />
             <p className="m-0">
-              Timing is advisory: Task 2 first (40 min) then Task 1 (20 min). The only hard rule is the
-              60:00 stop. Word counts and the timer are the only live aids — no spellcheck, no autocorrect.
-              Highlighting is disabled by design: the answer is a plain textarea, not a rich-text editor.
+              Timing is a guide: many people take Task 2 first (about 40 min), then Task 1 (about 20 min) — the
+              only hard rule is the 60:00 stop. The live word count and clock are your helpers here; spellcheck
+              and autocorrect stay off on purpose, and highlighting is disabled because the answer box is a
+              plain textarea.
             </p>
           </div>
         </div>
@@ -69,7 +68,8 @@ export function ExamScreen() {
           >
             <LockIcon />
             <span className="font-medium">
-              Time is up — the editor is locked. Submit all to finish your session.
+              Time&rsquo;s up — the editor is locked, and everything you wrote is safe. Submit all to see your
+              report.
             </span>
             <span className="ml-auto">
               <SubmitAllButton compact />
@@ -205,7 +205,8 @@ function QuitButton() {
       type="button"
       data-testid="quit-session"
       onClick={() => {
-        if (window.confirm("Quit this session? Your draft answers will be erased.")) actions.reset();
+        if (window.confirm("Quit this session? Your draft answers will be erased and you'll return to setup."))
+          actions.reset();
       }}
       className="rounded-lg border border-slate-200 px-2.5 py-2 text-xs font-medium text-slate-500 transition-colors hover:border-red-200 hover:bg-red-50 hover:text-red-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-700"
     >
@@ -242,12 +243,12 @@ function LockOverlay({ onReview }: { onReview: () => void }) {
             <LockIcon />
           </span>
           <h2 id="time-up-title" className="text-lg font-semibold text-slate-900">
-            Time is up
+            Time&rsquo;s up — nice effort
           </h2>
         </div>
         <p id="time-up-desc" className="mt-3 text-sm leading-6 text-slate-600">
-          The 60-minute limit has been reached and the editor is locked. Submitting now records your answers
-          exactly as they stand.
+          You reached the 60:00 mark, so the editor is locked. Submitting now records your answers exactly as
+          they stand — nothing you wrote is lost.
         </p>
         <div className="mt-5 flex flex-wrap gap-3">
           <button

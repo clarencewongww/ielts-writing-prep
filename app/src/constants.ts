@@ -4,7 +4,7 @@
  * cross-checks the manifest at boot and warns when anything drifts.
  */
 
-import type { Session, ExamMode } from "./types/session";
+import type { Session, ExamMode, TaskOrder } from "./types/session";
 import type { Task1Type, Task2Family, WordTarget } from "./types/bank";
 
 /* ------------------------------------------------------------------ */
@@ -89,7 +89,21 @@ export function buildSession(mode: ExamMode = "computer"): Session {
 
 export const SESSION: Session = buildSession("computer");
 
+/**
+ * CBT only: setup no longer offers a mode choice, so every session is
+ * computer-based. `EXAM_MODES` is kept for the `ExamMode` union's other
+ * consumers; nothing renders a paper option.
+ */
+export const FIXED_EXAM_MODE: ExamMode = "computer";
+
 export const EXAM_MODES: readonly ExamMode[] = ["computer", "paper"];
+
+/**
+ * Default task order on the setup screen. Task 1 first doubles as a warm-up,
+ * and the setup tip tells learners many teachers start with Task 2 instead —
+ * either order counts. A stored preference (`ielts.setup.v1`) still wins.
+ */
+export const DEFAULT_TASK_ORDER: TaskOrder = "t1-first";
 
 /* ------------------------------------------------------------------ */
 /* Bank enums                                                          */

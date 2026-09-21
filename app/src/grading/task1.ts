@@ -18,6 +18,7 @@ import type { Task1FeedbackStarter, Task1Item } from "../types/bank";
 import type { Criterion, DeterministicCheck, FeedbackItem } from "../types/grading";
 import { evaluateTask1Caps, type GradeCap, type Task1CapInput } from "./caps";
 import { analyzeCohesion, splitParagraphs } from "./cohesion";
+import { detectMisspellings, spellingDensityBand, task1SpellingAllowlist } from "./lexical";
 import {
   analyzeDataPerSentence,
   analyzeGrammar,
@@ -196,6 +197,10 @@ export function gradeTask1(item: Task1Item, text: string): Task1GradeResult {
   const missingFeatures = wholeTextMatches.filter((match) => !match.matched);
   const bannedHits = checkBannedPhrases(raw);
   const bannedBlocking = bannedHits.filter((hit) => !hit.advisory);
+  const spellingHits = detectMisspellings(raw, task1SpellingAllowlist(item));
+  // Distance-3 advisory suggestions weigh half so a rare word cannot cap LR alone.
+  const spellingErrors = spellingHits.filter((hit) => hit.severity === "error").length;
+  const spellingWeight = spellingErrors + (spellingHits.length - spellingErrors) * 0.5;
 
   /* --- caps (caps.ts + GRA range/tense overrides) --- */
   const capInput: Task1CapInput = {
@@ -270,10 +275,35 @@ export function gradeTask1(item: Task1Item, text: string): Task1GradeResult {
     });
   }
 
+  if (spellingHits.length > 0) {
+    const spellingBand = spellingDensityBand(spellingWeight, words);
+    const firstSpelling = spellingHits[0];
+    const spellingEvidence = spanOf(raw, firstSpelling.startChar, firstSpelling.endChar);
+    caps.push({
+      criterion: "LR",
+      cap: spellingBand,
+      checkId: "t1.lr.spelling",
+      reason: `${spellingHits.length} spelling slip(s): ${spellingHits
+        .slice(0, 3)
+        .map((hit) => `"${hit.match}" → "${hit.correction}"`)
+        .join(", ")}${spellingHits.length > 3 ? ", …" : ""}.`,
+      evidence: spellingEvidence,
+    });
+    capFeedback.push({
+      criterion: "LR",
+      band: spellingBand,
+      checkId: "t1.lr.spelling",
+      severity: firstSpelling.severity === "upgrade" ? "upgrade" : "error",
+      evidenceSpan: spellingEvidence,
+      feedbackStarter: `Spelling: "${firstSpelling.match}" → did you mean "${firstSpelling.correction}"?`,
+      fixSuggestion: `Replace "${firstSpelling.match}" with "${firstSpelling.correction}" — spelling errors count under Lexical Resource.`,
+    });
+  }
+
   /* --- base bands --- */
   const taBase = baseTa(capInput);
   const ccBase = baseCc(capInput);
-  const lrBase = densityBand(numberHits.length + bannedBlocking.length, words);
+  const lrBase = densityBand(numberHits.length + bannedBlocking.length + spellingWeight, words);
   const graErrors = grammarHits.length + tense.issues.length;
   let graBase = densityBand(graErrors, words);
   if (range.complexCount === 0) graBase = Math.min(graBase, 6);
@@ -401,6 +431,18 @@ export function gradeTask1(item: Task1Item, text: string): Task1GradeResult {
           : range.repeatedTerms.map((entry) => `${entry.term} ×${entry.count}`).join(", "),
       severity: "upgrade",
     },
+    {
+      id: "t1.lr.spelling",
+      label: "Spelling accuracy",
+      task: 1,
+      passed: spellingHits.length === 0,
+      observed:
+        spellingHits.length === 0
+          ? "No flagged misspellings"
+          : spellingHits.map((hit) => `"${hit.match}" → "${hit.correction}"`).join(", "),
+      cap: "LR",
+      severity: "error",
+    },
   ];
 
   /* --- analytic feedback --- */
@@ -445,6 +487,18 @@ export function gradeTask1(item: Task1Item, text: string): Task1GradeResult {
       evidenceSpan: spanOf(raw, hit.start, hit.end),
       feedbackStarter: hit.message,
       fixSuggestion: hit.suggestion,
+    });
+  }
+
+  for (const hit of spellingHits.slice(0, 3)) {
+    pushFeedback({
+      criterion: "LR",
+      band: scores.LR,
+      checkId: "t1.lr.spelling",
+      severity: hit.severity,
+      evidenceSpan: spanOf(raw, hit.startChar, hit.endChar),
+      feedbackStarter: `Spelling: "${hit.match}" → did you mean "${hit.correction}"?`,
+      fixSuggestion: `Replace "${hit.match}" with "${hit.correction}" — spelling errors count under Lexical Resource.`,
     });
   }
 

@@ -68,7 +68,7 @@ export function CriterionCard({
   return (
     <section
       data-testid={`criterion-card-${criterion}`}
-      className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
+      className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm shadow-slate-200/50"
     >
       <header className="flex flex-wrap items-start justify-between gap-2">
         <div>
@@ -109,8 +109,8 @@ export function CriterionCard({
 
       <div className="mt-3 space-y-2.5" data-testid={`criterion-feedback-${criterion}`}>
         {feedback.length === 0 ? (
-          <p className="rounded-lg border border-dashed border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-500">
-            No issues found for this criterion.
+          <p className="rounded-lg border border-dashed border-emerald-200 bg-emerald-50/60 px-3 py-2 text-xs text-emerald-800">
+            Nothing flagged here — this criterion reads clean.
           </p>
         ) : (
           feedback.map((item, index) => (

@@ -1,20 +1,23 @@
 /**
  * PromptViewer — Task 2 prompt card.
  *
- * Shows the statement and instruction, the position requirement badge, the thesis rule
- * (collapsible), a structure preview and a seed-idea checklist. The checklist is a
- * planning aid only: ticking an idea never inserts any text into an answer.
+ * The statement, instruction, live badges and word/time metadata stay visible. Every
+ * planning aid is a native <details> disclosure that starts collapsed: thesis rule,
+ * structure preview, seed-idea checklist, banned phrases and marking notes.
+ *
+ * The checklist is a planning aid only: ticking an idea never inserts any text into an
+ * answer, and the selection never leaves this component except through `onChecklistChange`.
  */
 
 import { useMemo, useState } from 'react';
 import { cx, formatWordTarget, humanizeToken, pluralize } from './format';
 import type { Task2Prompt } from './types';
-import { Badge, Card, Collapsible, SectionHeading } from './ui';
+import { Badge, Card, Collapsible } from './ui';
 
 export interface PromptViewerProps {
   prompt: Task2Prompt;
   className?: string;
-  /** Open the thesis-rule panel on first render. */
+  /** Open the thesis-rule panel on first render. Defaults to closed, like every other hint. */
   thesisDefaultOpen?: boolean;
   /** Called whenever the checklist selection changes (planning state, never answer text). */
   onChecklistChange?: (selected: string[]) => void;
@@ -41,7 +44,12 @@ const IDEA_GROUP_HEADING: Record<IdeaGroupKey, string> = {
   solutions: 'text-teal-700',
 };
 
-function IdeaChecklist({
+/**
+ * Seed-idea checklist inside a collapsed disclosure. The live tick count sits in the
+ * summary, so the header reads "0 of 6 ticked — planning only, tap to expand" until the
+ * learner starts ticking; after that only the count changes.
+ */
+function SeedIdeasPanel({
   prompt,
   onChange,
 }: {
@@ -67,17 +75,22 @@ function IdeaChecklist({
   const selectedCount = Object.values(checked).filter(Boolean).length;
 
   return (
-    <div>
-      <SectionHeading
-        hint={`${selectedCount} of ${total} ticked — planning only`}
-      >
-        Seed ideas
-      </SectionHeading>
+    <Collapsible
+      testId="seed-ideas"
+      summary="Seed ideas"
+      aside={
+        <span className="text-[11px] font-normal text-slate-400">
+          {selectedCount} of {total} ticked — planning only,{' '}
+          <span className="group-open:hidden">tap to expand</span>
+          <span className="hidden group-open:inline">tap to collapse</span>
+        </span>
+      }
+    >
       <p className="mb-2 text-xs text-slate-500">
         Tick the ideas you plan to use. Nothing here is inserted into your essay automatically; the arguments must
         be written in your own words.
       </p>
-      <div className="grid gap-3 sm:grid-cols-2">
+      <div data-testid="seed-ideas-checklist" className="grid gap-3 sm:grid-cols-2">
         {groups.map((group) => (
           <div key={group.key} className="rounded-md border border-slate-200 p-2">
             <p className={cx('mb-1 text-[11px] font-semibold uppercase tracking-wide', IDEA_GROUP_HEADING[group.key])}>
@@ -90,6 +103,7 @@ function IdeaChecklist({
                   <li key={id} className="flex items-start gap-2">
                     <input
                       id={`${prompt.promptId}-${id}`}
+                      data-testid="seed-idea-checkbox"
                       type="checkbox"
                       checked={Boolean(checked[id])}
                       onChange={() => toggle(id)}
@@ -105,11 +119,11 @@ function IdeaChecklist({
           </div>
         ))}
       </div>
-    </div>
+    </Collapsible>
   );
 }
 
-export function PromptViewer({ prompt, className, thesisDefaultOpen = true, onChecklistChange }: PromptViewerProps) {
+export function PromptViewer({ prompt, className, thesisDefaultOpen = false, onChecklistChange }: PromptViewerProps) {
   const target = useMemo(() => formatWordTarget(prompt.wordTarget), [prompt.wordTarget]);
   const structure = prompt.structure ?? [];
   const banned = prompt.bannedPhrases ?? [];
@@ -148,6 +162,7 @@ export function PromptViewer({ prompt, className, thesisDefaultOpen = true, onCh
 
       {prompt.thesisRule ? (
         <Collapsible
+          testId="thesis-rule"
           summary="Thesis rule"
           defaultOpen={thesisDefaultOpen}
           aside={
@@ -161,8 +176,15 @@ export function PromptViewer({ prompt, className, thesisDefaultOpen = true, onCh
       ) : null}
 
       {structure.length > 0 ? (
-        <Card>
-          <SectionHeading hint={`${pluralize(structure.length, 'paragraph')} total`}>Structure preview</SectionHeading>
+        <Collapsible
+          testId="structure-preview"
+          summary="Structure preview"
+          aside={
+            <span className="text-[11px] font-normal text-slate-400">
+              {pluralize(structure.length, 'paragraph')} total
+            </span>
+          }
+        >
           <ol className="space-y-1">
             {structure.map((step, index) => (
               <li key={`${step}-${index}`} className="flex items-start gap-2 text-sm text-slate-700">
@@ -173,15 +195,13 @@ export function PromptViewer({ prompt, className, thesisDefaultOpen = true, onCh
               </li>
             ))}
           </ol>
-        </Card>
+        </Collapsible>
       ) : null}
 
-      <Card>
-        <IdeaChecklist prompt={prompt} onChange={onChecklistChange} />
-      </Card>
+      <SeedIdeasPanel prompt={prompt} onChange={onChecklistChange} />
 
       {banned.length > 0 ? (
-        <Collapsible summary={`Phrases to avoid (${banned.length})`}>
+        <Collapsible testId="banned-phrases" summary={`Phrases to avoid (${banned.length})`}>
           <ul className="space-y-1">
             {banned.map((phrase, index) => (
               <li key={`${phrase}-${index}`} className="flex items-start gap-2 text-xs text-slate-600">
@@ -199,7 +219,7 @@ export function PromptViewer({ prompt, className, thesisDefaultOpen = true, onCh
       ) : null}
 
       {(prompt.markingNotes || prompt.rubricRef) && (
-        <Collapsible summary="Marking notes">
+        <Collapsible testId="marking-notes" summary="Marking notes">
           {prompt.markingNotes ? (
             <p className="whitespace-pre-line text-sm text-slate-700">{prompt.markingNotes}</p>
           ) : null}

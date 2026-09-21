@@ -28,7 +28,7 @@ export function ScoreLabel({
     <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2" data-testid={testId}>
       <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">{label}</p>
       <p className="mt-0.5 text-2xl font-semibold text-slate-900">{band === null ? "–" : formatBand(band)}</p>
-      <p className="text-[11px] text-slate-500">{words == null ? "no submission" : `${words} words`}</p>
+      <p className="text-[11px] text-slate-500">{words == null ? "not submitted yet" : `${words} words`}</p>
     </div>
   );
 }
@@ -86,11 +86,11 @@ export function ScoreSummary({ task1, task2, overallBand, caps, words, minutesUs
 
       <div className="mt-4 border-t border-slate-100 pt-3">
         <h2 className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
-          Caps applied {caps.length > 0 ? `(${caps.length})` : ""}
+          Automatic caps {caps.length > 0 ? `(${caps.length})` : ""}
         </h2>
         {caps.length === 0 ? (
           <p className="mt-1 text-xs text-slate-500" data-testid="caps-empty">
-            No deterministic caps fired — the bands above come straight from the rubric.
+            No automatic caps — every band above comes straight from the rubric.
           </p>
         ) : (
           <ul className="mt-2 flex flex-wrap gap-2" data-testid="caps-list">

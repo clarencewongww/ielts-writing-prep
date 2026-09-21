@@ -31,12 +31,12 @@ function answerBand(answer: Answer): 6 | 7 | 8 {
 }
 
 export function ReferenceTabs({ item, submission, submissionLabel = "Your answer", className }: ReferenceTabsProps) {
-  const [active, setActive] = useState<string>(submission ? "yours" : "b6");
+  const [active, setActive] = useState<string>(submission != null ? "yours" : "b6");
 
   if (!item) {
     return (
-      <section className={cx("rounded-xl border border-dashed border-slate-300 bg-white p-4", className)} data-testid="reference-tabs-empty">
-        <p className="text-sm text-slate-500">Reference answers unavailable for this task.</p>
+      <section className={cx("rounded-2xl border border-dashed border-slate-300 bg-white p-4", className)} data-testid="reference-tabs-empty">
+        <p className="text-sm text-slate-500">No model answers for this task yet.</p>
       </section>
     );
   }
@@ -49,7 +49,7 @@ export function ReferenceTabs({ item, submission, submissionLabel = "Your answer
     <section
       data-testid="reference-tabs"
       data-task={task2 ? 2 : 1}
-      className={cx("rounded-xl border border-slate-200 bg-white p-4 shadow-sm", className)}
+      className={cx("rounded-2xl border border-slate-200 bg-white p-4 shadow-sm shadow-slate-200/50", className)}
     >
       <header className="flex flex-wrap items-center justify-between gap-2">
         <div>
@@ -58,8 +58,8 @@ export function ReferenceTabs({ item, submission, submissionLabel = "Your answer
             {task2 ? item.statement : `${item.type.toUpperCase()} chart — ${item.statement}`}
           </p>
         </div>
-        <span className="rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-[10px] font-medium text-slate-500">
-          bank reference answers
+        <span className="rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[10px] font-medium text-amber-900">
+          model answers from the bank
         </span>
       </header>
 
@@ -83,7 +83,7 @@ export function ReferenceTabs({ item, submission, submissionLabel = "Your answer
       <div className="mt-3" data-testid="reference-panel">
         {active === "yours" ? (
           <p className="whitespace-pre-wrap rounded-lg bg-slate-50 p-3 text-[13px] leading-6 text-slate-700">
-            {submission?.trim() ? submission : "No answer recorded for this task."}
+            {submission?.trim() ? submission : "Nothing written for this task yet."}
           </p>
         ) : current ? (
           <div>
@@ -113,7 +113,7 @@ export function ReferenceTabs({ item, submission, submissionLabel = "Your answer
             </p>
           </div>
         ) : (
-          <p className="text-sm text-slate-500">That band is not in this item&rsquo;s reference set.</p>
+          <p className="text-sm text-slate-500">This item doesn&rsquo;t include that band.</p>
         )}
       </div>
     </section>
@@ -143,9 +143,9 @@ function TabButton({
 }) {
   const tones: Record<string, string> = {
     slate: "bg-slate-900 text-white",
-    amber: "bg-amber-500 text-white",
-    sky: "bg-sky-600 text-white",
-    emerald: "bg-emerald-600 text-white",
+    amber: "bg-amber-700 text-white",
+    sky: "bg-sky-700 text-white",
+    emerald: "bg-emerald-700 text-white",
   };
   const isActive = active === id;
   return (

@@ -111,15 +111,17 @@ export function ReportScreen({
   const priority = priorityCandidates[0] ?? null;
 
   return (
-    <main className="min-h-screen bg-slate-100" data-testid="report-screen">
+    <main className="min-h-screen bg-stone-100" data-testid="report-screen">
       <div className="mx-auto max-w-5xl space-y-6 px-4 py-10">
         <header className="flex flex-wrap items-end justify-between gap-3">
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-600">Session complete</p>
-            <h1 className="mt-1 text-2xl font-semibold tracking-tight text-slate-900">Writing report</h1>
+            <h1 className="mt-1 text-2xl font-semibold tracking-tight text-slate-900">
+              Nice work — here&rsquo;s your breakdown
+            </h1>
             <p className="mt-1 text-sm text-slate-600">
-              Bank v{bank.manifest.version} · {task1Item ? "Task 1" : "no Task 1 item"} · {task2Item ? "Task 2" : "no Task 2 item"} ·
-              feedback quotes the exact sentence that triggered each check.
+              Both tasks are marked against the band descriptors, and every note quotes the exact sentence it
+              came from — the good bits and the fixable ones.
             </p>
           </div>
           {onRestart && (
@@ -148,7 +150,9 @@ export function ReportScreen({
             data-testid="priority-feedback"
             className="rounded-xl border border-amber-200 bg-amber-50 p-4 shadow-sm"
           >
-            <p className="text-[11px] font-semibold uppercase tracking-wide text-amber-700">Fix this first</p>
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-amber-700">
+              Your quickest win
+            </p>
             <p className="mt-1 text-sm leading-6 text-amber-900">
               <span className="mr-2 rounded bg-amber-200 px-1.5 py-0.5 font-mono text-[10px] font-semibold uppercase text-amber-900">
                 {priority.item.criterion}
@@ -172,7 +176,11 @@ export function ReportScreen({
           feedback={task2Feedback}
           submitted={Boolean(submission.task2)}
           criteria={TASK2_CRITERIA}
-          note={task2Grade ? "Graded in this session — deterministic rubric + caps." : "Submit Task 2 to see its grade."}
+          note={
+            task2Grade
+              ? "Marked just now — rubric bands first, then any automatic caps."
+              : "Submit Task 2 to unlock this half of the report."
+          }
         />
 
         <TaskSection
@@ -188,8 +196,8 @@ export function ReportScreen({
           criteria={CRITERIA}
           note={
             task1Grade
-              ? "Task 1 grade supplied by the Task 1 grader."
-              : "Task 1 grading module is not connected in this build."
+              ? "Marked just now with the Task 1 rubric."
+              : "Task 1 marking isn't available in this build."
           }
         />
 
@@ -199,8 +207,8 @@ export function ReportScreen({
         </div>
 
         <p className="pb-6 text-center text-[11px] leading-5 text-slate-600">
-          Estimates are produced by a deterministic rubric; bands are indicative and sit within roughly half a band of an
-          examiner. Reference answers recreate reported tasks — this app is not affiliated with IELTS.
+          Bands come from a deterministic rubric and are indicative — usually within about half a band of an
+          examiner. Reference answers recreate reported tasks; this app is not affiliated with IELTS.
         </p>
       </div>
     </main>
@@ -255,7 +263,7 @@ function TaskSection({
 
       {!submitted && (
         <p className="rounded-xl border border-dashed border-slate-300 bg-white px-4 py-3 text-sm text-slate-500">
-          This task was not submitted.
+          Nothing was submitted for this task — no marks to show for it this time.
         </p>
       )}
 
@@ -291,7 +299,10 @@ function TaskSection({
       )}
 
       {grade && grade.checks.length > 0 && (
-        <details className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm" data-testid={`checks-${grade.task}`}>
+        <details
+          className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm shadow-slate-200/50"
+          data-testid={`checks-${grade.task}`}
+        >
           <summary className="cursor-pointer select-none text-xs font-semibold uppercase tracking-wide text-slate-500">
             Deterministic checks ({grade.checks.filter((check) => !check.passed).length} failed of {grade.checks.length})
           </summary>

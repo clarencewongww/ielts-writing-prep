@@ -1,4 +1,10 @@
-/** Optional planning area — kept on this device, not part of the submission. */
+/**
+ * Optional planning area — kept on this device, not part of the submission.
+ *
+ * Collapsed by default: the summary is the only thing visible until the learner expands
+ * it, so it can never be mistaken for answer text. The live word counter reads the answer
+ * draft only, so expanding or collapsing these notes leaves the counter unchanged.
+ */
 
 import { useSession } from "./useSession";
 
@@ -10,7 +16,7 @@ export function PlanningNotes() {
       data-testid="planning-notes"
       className="group rounded-xl border border-slate-200 bg-white shadow-sm open:shadow"
     >
-      <summary className="flex cursor-pointer select-none items-center gap-2 px-4 py-3 text-sm font-semibold text-slate-700 marker:content-none">
+      <summary className="flex cursor-pointer select-none items-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold text-slate-700 focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-slate-500 marker:content-none">
         <svg
           aria-hidden="true"
           viewBox="0 0 24 24"

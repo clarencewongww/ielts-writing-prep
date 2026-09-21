@@ -6,7 +6,13 @@
  */
 
 import { TASK1_WORDS, TASK1_WORD_WARN, TASK2_WORDS, TASK2_WORD_WARN } from "../constants";
-import { classifyWordCount, countWords, type WordCountLevel } from "../data/wordCount";
+import {
+  classifyWordCount,
+  countWords,
+  type WordCountInput,
+  type WordCountLevel,
+  type WordCountStatus,
+} from "../data/wordCount";
 import type { TaskNumber } from "../types/session";
 
 const LEVEL_STYLES: Record<
@@ -45,6 +51,29 @@ export interface WordCounterProps {
   className?: string;
 }
 
+/**
+ * Learner-facing wording for the live counter. The grader's own messages stay
+ * numeric and neutral; this layer adds the encouragement while keeping the same
+ * levels (`classifyWordCount` still drives the colour contract).
+ */
+function friendlyMessage(status: WordCountStatus, config: WordCountInput): string {
+  const [targetMin, targetMax] = config.target;
+  const { count, level, overWarn } = status;
+
+  if (count === 0) return `0 words — aim ${targetMin}-${targetMax}, you're warming up`;
+  if (level === "under") {
+    const short = config.min - count;
+    return `${count} words — ${short} to go before the ${config.min} minimum. Keep going.`;
+  }
+  if (level === "target") return `${count} words — right in the ${targetMin}-${targetMax} sweet spot.`;
+  if (level === "over-ceiling") {
+    return `${count} words — over the ${config.ceiling} ceiling; trim a little rather than add detail.`;
+  }
+  return overWarn
+    ? `${count} words — nudging the ${config.warn} warning line, still under the ${config.ceiling} ceiling.`
+    : `${count} words — past the ${targetMax} target, comfortably under the ${config.ceiling} ceiling.`;
+}
+
 export function WordCounter({ task, text, className = "" }: WordCounterProps) {
   const config =
     task === 1
@@ -65,11 +94,11 @@ export function WordCounter({ task, text, className = "" }: WordCounterProps) {
         <span className={`font-mono text-xl font-semibold tabular-nums ${styles.text}`}>{status.count}</span>
         <span className="text-xs font-medium text-slate-500">words</span>
         <span className={`rounded-full border px-2 py-0.5 text-[11px] font-medium ${styles.badge}`}>
-          min {config.min} · target {config.target[0]}–{config.target[1]} · ceiling {config.ceiling}
+          min {config.min} · aim {config.target[0]}-{config.target[1]} · ceiling {config.ceiling}
         </span>
         {status.overWarn && (
-          <span className="text-[11px] font-semibold uppercase tracking-wide text-amber-700">
-            over the {config.warn}-word warning line
+          <span className="text-[11px] font-semibold text-amber-700">
+            nudging the {config.warn}-word warning line
           </span>
         )}
       </div>
@@ -79,7 +108,7 @@ export function WordCounter({ task, text, className = "" }: WordCounterProps) {
           style={{ width: `${percent}%` }}
         />
       </div>
-      <p className={`mt-1.5 text-xs ${styles.text}`}>{status.message}</p>
+      <p className={`mt-1.5 text-xs ${styles.text}`}>{friendlyMessage(status, config)}</p>
     </div>
   );
 }

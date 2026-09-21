@@ -15,7 +15,8 @@ import {
   expandBannedPhrase,
   type BannedPhraseRule,
 } from "../constants";
-import { checkBannedPhrases } from "../data/wordCount";
+import { checkBannedPhrases, spellingDictionary, type SpellingDictionary } from "../data/wordCount";
+import type { Task1Item, Task2Item } from "../types/bank";
 
 export type LexicalHitKind =
   | "banned"
@@ -500,30 +501,368 @@ export interface SpellingHit extends LexicalHit {
   correction: string;
 }
 
-/** Dictionary of high-frequency IELTS misspellings (Lexical Resource, §9.4). */
-export function detectMisspellings(text: string): SpellingHit[] {
-  const pattern = new RegExp(`\\b(${Object.keys(MISSPELLINGS).join("|")})\\b`, "gi");
+/**
+ * Offline spellcheck. Two layers:
+ *
+ *  1. the curated high-frequency misspellings above (exact correction);
+ *  2. a dictionary lookup against `wordCount.ts`'s embedded word lists
+ *     (common English + AWL + IELTS/bank vocabulary), with suggestions from the
+ *     nearest known word.
+ *
+ * Tokens are skipped when they are numbers/dates (`regex` matches letters only),
+ * all-caps acronyms (`IELTS`, `UK`), Capitalised proper nouns (except
+ * sentence-initial words, which are checked lower-cased), internal-caps words
+ * (`YouTube`), words shorter than 4 letters (`a`, `an`) and words supplied by the
+ * task's own allowlist (`task1SpellingAllowlist` / `task2SpellingAllowlist` below).
+ */
+
+/** Distance at or below which a suggestion is treated as a definite error. */
+const SPELLING_ERROR_DISTANCE = 2;
+/** Widest search radius; distance-3 hits are advisory (`upgrade`) for long words. */
+const SPELLING_MAX_DISTANCE = 3;
+/** Possessive/contraction tails that never need checking (`student's`, `don't`). */
+const CONTRACTION_SUFFIXES = new Set(["s", "t", "d", "re", "ve", "ll", "m"]);
+const SPELLING_TOKEN = /[A-Za-z]+(?:['’\-][A-Za-z]+)*/g;
+
+interface SpellingSuggestion {
+  word: string | null;
+  distance: number;
+}
+
+const suggestionCache = new Map<string, SpellingSuggestion>();
+
+/** Productive prefixes that combine with a known word (`overfishing`, `telecommuting`). */
+const COMPOUND_PREFIXES = new Set([
+  "over",
+  "under",
+  "out",
+  "up",
+  "down",
+  "re",
+  "pre",
+  "post",
+  "mis",
+  "non",
+  "anti",
+  "auto",
+  "co",
+  "de",
+  "dis",
+  "inter",
+  "multi",
+  "semi",
+  "sub",
+  "super",
+  "trans",
+  "ultra",
+  "bio",
+  "eco",
+  "tele",
+  "cyber",
+  "micro",
+  "macro",
+  "nano",
+  "neuro",
+  "psycho",
+  "socio",
+  "techno",
+  "geo",
+  "hydro",
+  "thermo",
+  "photo",
+  "electro",
+  "crowd",
+  "cross",
+]);
+
+/** Function words that must never be glued together into a compound (`eachother`). */
+const NON_COMPOUND_LEFT = new Set(["each", "all"]);
+
+/** Base dictionary words carry an integer rank; generated inflections carry base + 0.5. */
+function isBaseWord(word: string, dictionary: SpellingDictionary): boolean {
+  const rank = dictionary.rank.get(word);
+  return rank !== undefined && Number.isInteger(rank);
+}
+
+/**
+ * True when an unknown token is a compound of known words (`landfill` = land + fill,
+ * `upskilling` = up + skilling, `coworking` = co + working). Both sides need at
+ * least four letters and the prefix route needs a base word, so typos such as
+ * `infact` / `comitted` are not waved through.
+ */
+function isKnownCompound(word: string, dictionary: SpellingDictionary): boolean {
+  for (let i = 4; i <= word.length - 4; i += 1) {
+    if (!dictionary.rank.has(word.slice(i))) continue;
+    const left = word.slice(0, i);
+    if (NON_COMPOUND_LEFT.has(left)) continue;
+    if (dictionary.rank.has(left) || COMPOUND_PREFIXES.has(left)) return true;
+  }
+  for (const prefix of COMPOUND_PREFIXES) {
+    if (!word.startsWith(prefix) || word.length - prefix.length < 4) continue;
+    if (isBaseWord(word.slice(prefix.length), dictionary)) return true;
+  }
+  return false;
+}
+
+function collapseDoubleLetters(word: string): string {
+  return word.replace(/(.)\1+/g, "$1");
+}
+
+/** Bounded Damerau–Levenshtein (optimal string alignment) with early exit. */
+function editDistance(a: string, b: string, maxDistance: number): number {
+  const la = a.length;
+  const lb = b.length;
+  if (Math.abs(la - lb) > maxDistance) return maxDistance + 1;
+  let previous2: number[] | null = null;
+  let previous: number[] = Array.from({ length: lb + 1 }, (_, i) => i);
+
+  for (let i = 1; i <= la; i += 1) {
+    const current = new Array<number>(lb + 1);
+    current[0] = i;
+    let rowMin = i;
+    for (let j = 1; j <= lb; j += 1) {
+      let value = Math.min(
+        previous[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1),
+        previous[j] + 1,
+        current[j - 1] + 1,
+      );
+      if (i > 1 && j > 1 && a[i - 1] === b[j - 2] && a[i - 2] === b[j - 1] && previous2) {
+        value = Math.min(value, previous2[j - 2] + 1);
+      }
+      current[j] = value;
+      if (value < rowMin) rowMin = value;
+    }
+    if (rowMin > maxDistance) return maxDistance + 1;
+    previous2 = previous;
+    previous = current;
+  }
+  return previous[lb];
+}
+
+/**
+ * Nearest dictionary word. Ties prefer the candidate whose double letters match
+ * (`biger → bigger`, `untill → until`), then the same first letter, then the more
+ * common word. Distance-3 suggestions require a long word and the same first
+ * letter so `nesscities → necessities` works without inviting noise.
+ */
+function nearestDictionaryWord(word: string, dictionary: SpellingDictionary): SpellingSuggestion {
+  const cached = suggestionCache.get(word);
+  if (cached) return cached;
+
+  let best: string | null = null;
+  let bestDistance = SPELLING_MAX_DISTANCE + 1;
+  let bestRank = Number.POSITIVE_INFINITY;
+  let bestCollapse = false;
+  const collapsedWord = collapseDoubleLetters(word);
+  const lengths = [
+    word.length,
+    word.length - 1,
+    word.length + 1,
+    word.length - 2,
+    word.length + 2,
+    word.length - 3,
+    word.length + 3,
+  ];
+
+  for (const length of lengths) {
+    if (length < 2 || Math.abs(length - word.length) > bestDistance) continue;
+    const bucket = dictionary.byLength.get(length);
+    if (!bucket) continue;
+    for (const candidate of bucket) {
+      if (candidate === word) continue;
+      const distance = editDistance(word, candidate, SPELLING_MAX_DISTANCE);
+      if (distance > SPELLING_MAX_DISTANCE) continue;
+      if (distance === SPELLING_MAX_DISTANCE && (word.length < 8 || candidate[0] !== word[0])) continue;
+
+      const collapse = collapseDoubleLetters(candidate) === collapsedWord;
+      let better = distance < bestDistance;
+      if (!better && distance === bestDistance && best !== null) {
+        if (collapse !== bestCollapse) better = collapse && !bestCollapse;
+        else {
+          const starts = candidate[0] === word[0];
+          const bestStarts = best[0] === word[0];
+          if (starts !== bestStarts) better = starts;
+          else if (starts === bestStarts) better = (dictionary.rank.get(candidate) ?? Number.POSITIVE_INFINITY) < bestRank;
+        }
+      }
+      if (better) {
+        best = candidate;
+        bestDistance = distance;
+        bestRank = dictionary.rank.get(candidate) ?? Number.POSITIVE_INFINITY;
+        bestCollapse = collapse;
+      }
+    }
+  }
+
+  const result: SpellingSuggestion =
+    best === null ? { word: null, distance: Number.POSITIVE_INFINITY } : { word: best, distance: bestDistance };
+  suggestionCache.set(word, result);
+  return result;
+}
+
+function isAllCapsAcronym(token: string): boolean {
+  const letters = token.replace(/[^A-Za-z]/g, "");
+  return letters.length >= 2 && letters === letters.toUpperCase();
+}
+
+function hasInternalCapital(token: string): boolean {
+  return /[A-Z]/.test(token.slice(1));
+}
+
+function isSentenceInitial(text: string, start: number): boolean {
+  let i = start - 1;
+  while (i >= 0 && (text[i] === " " || text[i] === "\t")) i -= 1;
+  return i < 0 || ".!?\n;:".includes(text[i]);
+}
+
+/** Splits a multi-word allowlist entry into lower-cased lookup words. */
+function allowlistSet(allowlist: Iterable<string>): Set<string> {
+  const out = new Set<string>();
+  for (const entry of allowlist) {
+    for (const word of entry.toLowerCase().match(/[a-z]+/g) ?? []) {
+      if (word.length >= 2) out.add(word);
+    }
+  }
+  return out;
+}
+
+/**
+ * Spell-checks a submission. `allowlist` carries task-owned vocabulary (chart
+ * labels, seed ideas, stage names) so it is never flagged; the static dictionary
+ * already includes the whole bank, so the allowlist mainly covers new items.
+ */
+export function detectMisspellings(text: string, allowlist: Iterable<string> = []): SpellingHit[] {
+  if (!text.trim()) return [];
+  const allow = allowlistSet(allowlist);
+  const dictionary = spellingDictionary();
   const hits: SpellingHit[] = [];
-  pushHits(
-    text,
-    pattern,
-    (m) => {
-      const wrong = m[0].toLowerCase();
-      const correction = MISSPELLINGS[wrong] ?? wrong;
-      return {
+  const seen = new Set<string>();
+
+  for (const match of text.matchAll(SPELLING_TOKEN)) {
+    const token = match[0];
+    const tokenStart = match.index ?? 0;
+    if (isAllCapsAcronym(token) || hasInternalCapital(token)) continue;
+    if (/^[A-Z]/.test(token) && !isSentenceInitial(text, tokenStart)) continue;
+    if (allow.has(token.toLowerCase())) continue;
+
+    const parts = token.split(/['’\-]/);
+    let cursor = 0;
+    for (let partIndex = 0; partIndex < parts.length; partIndex += 1) {
+      const part = parts[partIndex];
+      if (!part) continue;
+      const at = Math.max(0, token.indexOf(part, cursor));
+      cursor = at + part.length;
+      if (part.length < 4) continue;
+      if (partIndex > 0 && CONTRACTION_SUFFIXES.has(part.toLowerCase())) continue;
+      const lower = part.toLowerCase();
+      if (allow.has(lower)) continue;
+
+      let correction: string | null = MISSPELLINGS[lower] ?? null;
+      let distance = correction ? 0 : Number.POSITIVE_INFINITY;
+      if (!correction && !dictionary.rank.has(lower) && !isKnownCompound(lower, dictionary)) {
+        const suggestion = nearestDictionaryWord(lower, dictionary);
+        if (suggestion.word && Number.isFinite(suggestion.distance) && suggestion.distance <= SPELLING_MAX_DISTANCE) {
+          correction = suggestion.word;
+          distance = suggestion.distance;
+        }
+      }
+      if (!correction) continue;
+
+      const startChar = tokenStart + Math.max(0, at);
+      const endChar = startChar + part.length;
+      const key = `${startChar}:${endChar}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      hits.push({
         kind: "spelling",
-        label: `misspelling: ${m[0]} → ${correction}`,
-        match: m[0],
-        startChar: m.index ?? 0,
-        endChar: (m.index ?? 0) + m[0].length,
-        severity: "error",
-        suggestion: `Spell it \`${correction}\` — spelling errors are counted under Lexical Resource.`,
+        label: `misspelling: ${part} → ${correction}`,
+        match: part,
+        startChar,
+        endChar,
+        severity: distance > SPELLING_ERROR_DISTANCE ? "upgrade" : "error",
+        suggestion: `Did you mean \`${correction}\`? Spelling errors are counted under Lexical Resource.`,
         correction,
-      };
-    },
-    hits,
+      });
+    }
+  }
+
+  return hits.sort((a, b) => a.startChar - b.startChar);
+}
+
+/* ------------------------------------------------------------------ */
+/* Spelling density (dossier §9.4)                                     */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Band from spelling density: mostly error-free → 8, few → 7, some → 6,
+ * frequent → 5. Mirrors Task 1's number/banned `densityBand` so both graders
+ * share one mapping (errors per 200 words).
+ */
+export function spellingDensityBand(errors: number, words: number): number {
+  if (errors <= 0) return 8;
+  const scaled = words > 0 ? (errors * 200) / words : errors;
+  if (scaled <= 1.5) return 7;
+  if (scaled <= 3) return 6;
+  return 5;
+}
+
+/* ------------------------------------------------------------------ */
+/* Task-owned allowlists (chart labels, seed ideas, stage names)       */
+/* ------------------------------------------------------------------ */
+
+function collectAllowlistWords(value: unknown, out: Set<string>): void {
+  if (typeof value === "string") {
+    for (const word of value.match(/[A-Za-z]+/g) ?? []) {
+      if (word.length >= 2) out.add(word.toLowerCase());
+    }
+    return;
+  }
+  if (Array.isArray(value)) {
+    for (const item of value) collectAllowlistWords(item, out);
+    return;
+  }
+  if (value && typeof value === "object") {
+    for (const child of Object.values(value as Record<string, unknown>)) collectAllowlistWords(child, out);
+  }
+}
+
+/** Chart/category/series labels and stage names for a Task 1 item. */
+export function task1SpellingAllowlist(item: Task1Item): string[] {
+  const out = new Set<string>();
+  collectAllowlistWords(
+    [
+      item.topic,
+      item.statement,
+      item.categories,
+      item.axes,
+      item.series,
+      item.slices,
+      item.rows,
+      item.columns,
+      item.cells,
+      item.keyFeatures,
+      item.stages,
+      item.areas,
+      item.features,
+      item.changes,
+      item.unitsNote,
+    ],
+    out,
   );
-  return hits;
+  for (const chart of item.subCharts ?? []) {
+    for (const word of task1SpellingAllowlist(chart)) out.add(word);
+  }
+  return Array.from(out);
+}
+
+/** Seed ideas, prompt wording and structure labels for a Task 2 item. */
+export function task2SpellingAllowlist(item: Task2Item): string[] {
+  const out = new Set<string>();
+  collectAllowlistWords(
+    [item.topic, item.statement, item.instruction, item.seedIdeas, item.bannedPhrases, item.structure, item.thesisRule],
+    out,
+  );
+  return Array.from(out);
 }
 
 /* ------------------------------------------------------------------ */

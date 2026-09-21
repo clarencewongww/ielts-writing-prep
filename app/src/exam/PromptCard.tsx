@@ -50,13 +50,30 @@ export function PromptCard({ task, item, chartSlot }: PromptCardProps) {
         </dl>
         {chartSlot ?? <ChartRenderer item={chart} />}
         {chart.type === "process" && (
-          <p
+          <details
             data-testid="process-exempt-hint"
-            className="mt-3 rounded-lg border border-sky-200 bg-sky-50 px-3 py-2 text-xs leading-5 text-sky-900"
+            className="group mt-3 rounded-lg border border-sky-200 bg-sky-50"
           >
-            Process diagrams are exempt from the &ldquo;one figure per body sentence&rdquo; rule — describe each
-            stage in order, using time markers only where the task provides them.
-          </p>
+            <summary className="flex cursor-pointer list-none flex-wrap items-center justify-between gap-x-2 gap-y-1 rounded-lg px-3 py-2 text-xs font-semibold text-sky-900 focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-sky-700 marker:content-none">
+              <span className="flex items-center gap-2">
+                <span
+                  aria-hidden="true"
+                  className="text-sky-500 transition-transform group-open:rotate-90"
+                >
+                  ▶
+                </span>
+                Process diagram tip
+              </span>
+              <span className="text-[11px] font-normal text-sky-700">
+                <span className="group-open:hidden">tap to expand</span>
+                <span className="hidden group-open:inline">tap to collapse</span>
+              </span>
+            </summary>
+            <p className="border-t border-sky-100 px-3 py-2 text-xs leading-5 text-sky-900">
+              Process diagrams are exempt from the &ldquo;one figure per body sentence&rdquo; rule — describe each
+              stage in order, using time markers only where the task provides them.
+            </p>
+          </details>
         )}
         {/* The chart's own attribution lives inside the figure; bank policy stays a tooltip. */}
       </article>

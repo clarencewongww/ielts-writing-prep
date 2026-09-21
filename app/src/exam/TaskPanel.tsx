@@ -28,12 +28,12 @@ export function TaskPanel({ task }: TaskPanelProps) {
   if (!item) {
     return (
       <section className="pt-6" data-testid="task-missing">
-        <div className="rounded-xl border border-amber-200 bg-amber-50 p-6 text-sm text-amber-900">
-          No item is selected for Task {task}.{" "}
+        <div className="rounded-2xl border border-amber-200 bg-amber-50 p-6 text-sm text-amber-900">
+          No prompt is selected for Task {task} yet —{" "}
           <button type="button" onClick={actions.reset} className="font-semibold underline underline-offset-2">
-            Return to setup
-          </button>
-          .
+            head back to setup
+          </button>{" "}
+          and pick one.
         </div>
       </section>
     );
@@ -66,7 +66,7 @@ export function TaskPanel({ task }: TaskPanelProps) {
           <h2 className="text-sm font-semibold text-slate-700">
             Your answer — Task {task}
           </h2>
-          <span className="text-xs text-slate-500">suggested {recommendedMinutes} min</span>
+          <span className="text-xs text-slate-500">suggested {recommendedMinutes} min · take your time</span>
         </div>
 
         <AnswerBox
@@ -76,8 +76,8 @@ export function TaskPanel({ task }: TaskPanelProps) {
           disabled={locked}
           placeholder={
             task === 1
-              ? "Introduction, overview, two body paragraphs…"
-              : "Introduction with your position, body paragraphs, conclusion…"
+              ? "Start with the overview — what stands out overall? Then one clear paragraph for each group of data…"
+              : "Open with your position in one sentence, then give each main idea its own paragraph…"
           }
         />
 
@@ -139,7 +139,7 @@ function SubmitControl({ task }: { task: TaskNumber }) {
       data-testid={`submit-task-${task}`}
       onClick={() => setArmed(true)}
       disabled={draft.trim().length === 0 && !timer.locked}
-      title={draft.trim().length === 0 ? "Write something before submitting" : undefined}
+      title={draft.trim().length === 0 ? "Even one sentence unlocks submit" : undefined}
       className="rounded-lg bg-slate-900 px-3.5 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-slate-700 disabled:cursor-not-allowed disabled:bg-slate-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900"
     >
       Submit Task {task}

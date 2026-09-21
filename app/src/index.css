@@ -7,8 +7,15 @@
     height: 100%;
   }
 
+  /* Warm stone canvas instead of cool slate: less exam-hall, same AA contrast. */
   body {
-    @apply min-h-full bg-slate-100 font-sans text-slate-900 antialiased;
+    @apply min-h-full bg-stone-100 font-sans text-slate-900 antialiased;
+  }
+
+  /* Warm text selection. The answer textarea overrides this with its own
+     low-contrast slate tone (allowHighlight: false contract). */
+  ::selection {
+    @apply bg-amber-200/70 text-slate-900;
   }
 
   /* Hide the default disclosure triangle; PlanningNotes draws its own chevron. */
