@@ -1,9 +1,10 @@
-/** Exam screen shell: sticky header (timer · task switcher · submit) + the active task workspace. */
+/** Exam screen shell: sticky header (timer · task switcher · appearance · submit) + the active task workspace. */
 
 import { useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
 import { countWords } from "../data/wordCount";
 import { draftKey, taskKey, type TaskNumber } from "../types/session";
 import { TaskPanel } from "./TaskPanel";
+import { ThemeToggle } from "./ThemeToggle";
 import { Timer } from "./Timer";
 import { useSession } from "./useSession";
 import { useTimer } from "./useTimer";
@@ -41,7 +42,11 @@ export function ExamScreen() {
 
           <TaskTabs />
 
-          <div className="ml-auto flex items-center gap-2 sm:gap-2.5">
+          {/* `flex-wrap` keeps the controls inside 320px: the appearance
+              switcher takes its own line when the timer/actions already fill
+              one. Timer logic and order are untouched. */}
+          <div className="ml-auto flex flex-wrap items-center justify-end gap-2 sm:gap-2.5">
+            <ThemeToggle />
             <Timer />
             <SubmitAllButton />
             <QuitButton />

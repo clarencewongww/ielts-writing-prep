@@ -8,6 +8,11 @@
 // Contrast figures for each token live in the index.css header.
 export default {
   content: ["./index.html", "./src/**/*.{ts,tsx}"],
+  // Class strategy: the appearance switcher (src/exam/theme.ts) puts `.dark` on
+  // <html>; the pre-paint script in index.html does the same before first paint.
+  // Token overrides live in src/index.css under `.dark`, so `dark:` variants are
+  // only needed for one-off exceptions.
+  darkMode: "class",
   theme: {
     extend: {
       fontFamily: {

@@ -121,29 +121,31 @@
   --paper: 255 255 255; /* fixed chart figure surface */
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    color-scheme: dark;
-    --surface: 0 0 0; /* #000000 */
-    --content: 28 28 30; /* #1C1C1E */
-    --ink: 245 245 247; /* #F5F5F7 */
-    --ink-2: 161 161 166; /* #A1A1A6 */
-    --ink-3: 142 142 147; /* #8E8E93 */
-    --accent: 10 132 255; /* #0A84FF */
-    --accent-fill: 0 104 214; /* #0068D6 — keeps white labels at 5.31:1 */
-    --accent-soft: 16 42 69; /* #102A45 */
-    --accent-strong: 108 184 255; /* #6CB8FF */
-    --line: 56 56 60; /* #38383C */
-    --line-soft: 44 44 46; /* #2C2C2E */
-    --warn: 255 179 64; /* #FFB340 */
-    --warn-soft: 58 42 16; /* #3A2A10 */
-    --danger: 255 100 130; /* #FF6482 */
-    --danger-fill: 215 0 21; /* #D70015 — white label 5.38:1 */
-    --danger-soft: 59 18 32; /* #3B1220 */
-    --ok: 48 209 88; /* #30D158 */
-    --ok-soft: 12 42 28; /* #0C2A1C */
-    --paper: 255 255 255;
-  }
+/* Dark appearance. The switcher (src/exam/theme.ts + the pre-paint script in
+   index.html) puts `.dark` on <html>; "system" resolves through matchMedia, so
+   OS changes are live. Values are byte-identical to the previous
+   `prefers-color-scheme` block — only the selector mechanism changed. */
+.dark {
+  color-scheme: dark;
+  --surface: 0 0 0; /* #000000 */
+  --content: 28 28 30; /* #1C1C1E */
+  --ink: 245 245 247; /* #F5F5F7 */
+  --ink-2: 161 161 166; /* #A1A1A6 */
+  --ink-3: 142 142 147; /* #8E8E93 */
+  --accent: 10 132 255; /* #0A84FF */
+  --accent-fill: 0 104 214; /* #0068D6 — keeps white labels at 5.31:1 */
+  --accent-soft: 16 42 69; /* #102A45 */
+  --accent-strong: 108 184 255; /* #6CB8FF */
+  --line: 56 56 60; /* #38383C */
+  --line-soft: 44 44 46; /* #2C2C2E */
+  --warn: 255 179 64; /* #FFB340 */
+  --warn-soft: 58 42 16; /* #3A2A10 */
+  --danger: 255 100 130; /* #FF6482 */
+  --danger-fill: 215 0 21; /* #D70015 — white label 5.38:1 */
+  --danger-soft: 59 18 32; /* #3B1220 */
+  --ok: 48 209 88; /* #30D158 */
+  --ok-soft: 12 42 28; /* #0C2A1C */
+  --paper: 255 255 255;
 }
 
 /* Increase Contrast supplies stronger separators and secondary text, the same
@@ -153,10 +155,11 @@
     --ink-2: 66 66 69;
     --line: 142 142 147;
   }
-}
 
-@media (prefers-color-scheme: dark) and (prefers-contrast: more) {
-  :root {
+  /* Same specificity as :root — declared last so the dark pair wins whenever
+     the dark class is present; either way the light pair only replaces the
+     two tokens that need it. */
+  .dark {
     --ink-2: 199 199 204;
     --line: 99 99 102;
   }
@@ -251,8 +254,11 @@
     --line-soft: 232 232 237;
     --surface: 245 245 247;
     --content: 255 255 255;
-    --tint-soft: 234 243 255;
-    --tint-strong: 0 88 176;
+    /* Tailwind's tint roles read --accent-soft / --accent-strong; pin those
+       exact names (the old --tint-* names were dead, so dark's #102A45 soft
+       leaked in under the pinned #1D1D1F ink and axe measured 1.15:1). */
+    --accent-soft: 234 243 255;
+    --accent-strong: 0 88 176;
     --warn-soft: 255 251 235;
     --ok-soft: 236 253 245;
     --danger-soft: 255 241 242;

@@ -16,6 +16,9 @@ import {
   type SetupPrefs,
   type TaskTimings,
 } from "../types/session";
+// Type-only import (erased at build time) so `exam/theme` can own the union
+// while the schema guard lives with the rest of the persistence contract.
+import type { Theme } from "../exam/theme";
 
 export const STORAGE_DEBOUNCE_MS = 500;
 
@@ -26,9 +29,13 @@ export const STORAGE_KEYS = {
   timings: "ielts.timings.v1",
   /** Remembered setup-screen choices. */
   setup: "ielts.setup.v1",
+  /** Appearance preference: "light" | "dark" | "system". */
+  theme: "ielts.theme.v1",
 } as const;
 
 export type StorageKey = (typeof STORAGE_KEYS)[keyof typeof STORAGE_KEYS];
+
+export const THEME_SCHEMA_VERSION = 1 as const;
 
 interface StoredEnvelope<T> {
   schemaVersion: number;
@@ -176,6 +183,29 @@ export function patchSetupPrefs(patch: Partial<SetupPrefs>): SetupPrefs {
   const merged: SetupPrefs = { ...(loadSetupPrefs() ?? { mode: "computer" }), ...patch };
   saveSetupPrefs(merged);
   return merged;
+}
+
+export function isThemePreference(value: unknown): value is Theme {
+  return value === "light" || value === "dark" || value === "system";
+}
+
+/**
+ * Appearance preference guarded by the envelope schemaVersion *and* a value
+ * whitelist: anything else (missing, corrupt, future value) falls back to the
+ * system appearance instead of throwing.
+ */
+export function loadThemePreference(): Theme {
+  const value = readStored<unknown>(STORAGE_KEYS.theme, THEME_SCHEMA_VERSION);
+  if (isThemePreference(value)) return value;
+  if (value !== null) {
+    console.warn("[persistence] stored theme failed the shape check; discarding.");
+    removeStored(STORAGE_KEYS.theme);
+  }
+  return "system";
+}
+
+export function saveThemePreference(theme: Theme): void {
+  writeStored(STORAGE_KEYS.theme, theme, THEME_SCHEMA_VERSION);
 }
 
 /** Clears the session snapshot and per-task timings; setup preferences survive a reset. */
