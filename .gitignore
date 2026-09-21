@@ -17,7 +17,17 @@ dist/
 
 # QA screenshots & browser captures (never commit; keep locally if needed)
 qa-screenshots/
+qa-review/
 .openchamber/
+
+# Screenshot/image captures
 *.png
 *.jpg
 *.jpeg
+*.webp
+*.gif
+*.bmp
+*.ico
+
+# Exception: generated PWA icon set is required (recreate with `npm run icons`)
+!app/public/icons/*.png

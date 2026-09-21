@@ -165,13 +165,8 @@ export function SessionSetup() {
           </div>
 
           <div className="min-w-0 lg:col-start-1 lg:row-start-2">
-            <h1 className="text-[1.75rem] font-semibold leading-8 tracking-[-0.02em] text-ink sm:text-display lg:text-display-lg">
-              You&rsquo;ve got this — 60 minutes, 2&nbsp;tasks
-            </h1>
-            <p className="mt-3 max-w-xl text-body text-ink-2 [@media(max-width:359px)]:line-clamp-4">
-              Pick a chart + essay, then write — the timer runs 60:00 as a hard stop, and 20/40 is just a guide.
-              Take a breath first; the clock only starts when you&rsquo;re ready.
-            </p>
+            <h1 className="text-[1.75rem] font-semibold leading-8 tracking-[-0.02em] text-ink sm:text-display lg:text-display-lg">Academic Writing practice &mdash; 60 minutes &middot; 2&nbsp;tasks</h1>
+            <p className="mt-3 max-w-xl text-body text-ink-2 [@media(max-width:359px)]:line-clamp-4">Pick a chart + essay, then write &mdash; the timer runs 60:00 as a hard stop, and 20/40 is just a guide. The clock starts when you start the session.</p>
           </div>
 
           <div className="min-w-0 lg:col-start-2 lg:row-span-2 lg:row-start-2">

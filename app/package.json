@@ -7,7 +7,7 @@
   "scripts": {
     "sync:bank": "node scripts/sync-bank.mjs",
     "icons": "node scripts/generate-icons.mjs",
-    "predev": "npm run sync:bank",
+    "predev": "npm run sync:bank && npm run icons",
     "dev": "vite",
     "prebuild": "npm run sync:bank && npm run icons",
     "build": "npm run typecheck && vite build",
